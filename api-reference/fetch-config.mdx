@@ -114,6 +114,69 @@ if (response.status === 304) {
 }
 ```
 
+## Valid Script Sources (Deprecated)
+
+<Warning>
+  This endpoint is deprecated and will be removed in a future version. Please use the `/server-tag.json` endpoint instead.
+</Warning>
+
+### Get Valid Script Sources
+
+Retrieve a list of valid JavaScript source URLs for ad blocker detection.
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://config.adunblocker.com/valid_script_sources.json
+```
+
+```javascript JavaScript
+const response = await fetch('https://config.adunblocker.com/valid_script_sources.json');
+const sources = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get('https://config.adunblocker.com/valid_script_sources.json')
+sources = response.json()
+```
+</CodeGroup>
+
+#### Response
+
+```json
+[
+  "https://cdn.example.com/detection-script.js"
+]
+```
+
+#### Response Format
+
+The response is a JSON array containing valid JavaScript source URLs as strings.
+
+#### Response Headers
+
+| Header | Description |
+|--------|-------------|
+| `Content-Type` | `application/json` |
+| `ETag` | Entity tag for caching validation |
+| `Last-Modified` | Timestamp when the configuration was last updated |
+
+#### Migration Guide
+
+If you're currently using this endpoint, migrate to the new `/server-tag.json` endpoint:
+
+```javascript
+// Old (deprecated)
+const sources = await fetch('https://config.adunblocker.com/valid_script_sources.json')
+  .then(response => response.json());
+
+// New (recommended)
+const config = await fetch('http://config.adunblocker.com/server-tag.json')
+  .then(response => response.json());
+const sources = config.js;
+```
+
 ## Next Steps
 
 <CardGroup cols={2}>
