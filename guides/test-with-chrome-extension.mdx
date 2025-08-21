@@ -3,10 +3,6 @@ title: "Test With Chrome Extension"
 description: "Test your AdUnblock implementation using our Chrome extension"
 ---
 
-# Test With Chrome Extension
-
-Test your AdUnblock integration using our Chrome extension before deploying to production.
-
 <Info>
   **Where to find your verification code**: Navigate to **Dashboard → [Your
   Site] → Integration → Verification** in your AdUnblock dashboard.
@@ -28,27 +24,29 @@ Test your AdUnblock integration using our Chrome extension before deploying to p
     showing ads despite the ad blocker
   </Step>
 
-  <Step title="Install Chrome Extension">
-    Install the AdUnblock Devtool Chrome extension to test your integration:
-    
-    - Visit [**AdUnblock Devtool**](https://chromewebstore.google.com/detail/adunblock-devtool/gnlaoijjmmehcmccdkmbbcmmlpegcpmi) in the Chrome Web Store
-    - Click **Add to Chrome** to install the extension
-  </Step>
+{" "}
+<Step title="Install Chrome Extension">
+  Install the AdUnblock Devtool Chrome extension to test your integration: -
+  Visit [**AdUnblock
+  Devtool**](https://chromewebstore.google.com/detail/adunblock-devtool/gnlaoijjmmehcmccdkmbbcmmlpegcpmi)
+  in the Chrome Web Store - Click **Add to Chrome** to install the extension
+</Step>
 
-  <Step title="Test Your Website">
-    Use the extension to test the AdUnblock script on your website: - Navigate
-    to your website in Chrome - Click the **AdUnblock Devtool** extension icon
-    in your browser toolbar - Enter your **Verification Code**:
-    `YOUR_VERIFICATION_CODE` - Enter the **Script URL**:
-    `https://adblock.static-cloudflare.workers.dev/index.js` - Click **Apply to
-    Current Tab** - The page will automatically reload with the AdUnblock script
-    injected
-    <Warning>
-      Your verification code is domain-specific, so you can only test on your
-      own registered website. This extension is for testing purposes only before
-      implementing a permanent integration.
-    </Warning>
-  </Step>
+{" "}
+<Step title="Test Your Website">
+  Use the extension to test the AdUnblock script on your website: - Navigate to
+  your website in Chrome - Click the **AdUnblock Devtool** extension icon in
+  your browser toolbar - Enter your **Verification Code**:
+  `YOUR_VERIFICATION_CODE` - Enter the **Script URL**:
+  `https://adblock.static-cloudflare.workers.dev/index.js` - Click **Apply to
+  Current Tab** - The page will automatically reload with the AdUnblock script
+  injected
+  <Warning>
+    Your verification code is domain-specific, so you can only test on your own
+    registered website. This extension is for testing purposes only before
+    implementing a permanent integration.
+  </Warning>
+</Step>
 
   <Step title="Verify Integration">
     After the page reloads with the AdUnblock script, verify the following: ✅
@@ -81,14 +79,3 @@ https://config.adunblocker.com/server-tag.json
 ## Need Help?
 
 If you're experiencing any issues with the integration, please contact our support team at [support@adunblock.com](mailto:support@adunblock.com).
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="JavaScript Integration" icon="js" href="/guides/html-javascript">
-    Implement AdUnblock with vanilla JavaScript
-  </Card>
-  <Card title="WordPress Integration" icon="wordpress" href="/guides/wordpress">
-    Use our WordPress plugin for easy setup
-  </Card>
-</CardGroup>

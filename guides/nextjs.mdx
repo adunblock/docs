@@ -1,0 +1,119 @@
+---
+title: "Next.js"
+description: "Script loading for Next.js applications with React Server Components"
+---
+
+A Next.js React Server Component for fetching and rendering external JavaScript files on the server-side before page rendering. This package provides secure, cached script loading with TypeScript support.
+
+## Installation
+
+```bash
+npm install @adunblock/server-tag-nextjs
+```
+
+## Basic Usage
+
+Import and use the `ServerTag` component in your Next.js pages or layouts:
+
+```tsx
+import ServerTag from "@adunblock/server-tag-nextjs";
+
+export default function MyPage() {
+  return (
+    <div>
+      <ServerTag remoteUrl="https://config.adunblocker.com/server-tag.json" />
+      <h1>My Page Content</h1>
+    </div>
+  );
+}
+```
+
+## Expected Remote Response Format
+
+The remote URL should return a JSON response in this format:
+
+```json
+{
+  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
+}
+```
+
+## Advanced Usage
+
+### Custom Caching
+
+```tsx
+import ServerTag from "@adunblock/server-tag-nextjs";
+
+export default function MyPage() {
+  return (
+    <div>
+      <ServerTag
+        remoteUrl="https://config.adunblocker.com/server-tag.json"
+        cacheInterval={600} // Cache for 10 minutes (default: 300 seconds)
+      />
+      <h1>My Page Content</h1>
+    </div>
+  );
+}
+```
+
+### Custom Script Rendering
+
+Override the default script rendering with a custom callback:
+
+```tsx
+import ServerTag from "@adunblock/server-tag-nextjs";
+import Script from "next/script";
+
+export default function MyPage() {
+  return (
+    <div>
+      <ServerTag
+        remoteUrl="https://config.adunblocker.com/server-tag.json"
+        renderScript={({ js }) =>
+          js.map((src) => (
+            <Script
+              key={src}
+              src={src}
+              strategy="lazyOnload"
+              onLoad={() => console.log(`Loaded: ${src}`)}
+            />
+          ))
+        }
+      />
+      <h1>My Page Content</h1>
+    </div>
+  );
+}
+```
+
+## API Reference
+
+### Props
+
+| Prop            | Type       | Default     | Description                       |
+| --------------- | ---------- | ----------- | --------------------------------- |
+| `remoteUrl`     | `string`   | Required    | The URL to fetch script URLs from |
+| `cacheInterval` | `number`   | `300`       | Cache duration in seconds         |
+| `renderScript`  | `function` | `undefined` | Custom script rendering function  |
+
+### Types
+
+```typescript
+interface ServerTagProps {
+  remoteUrl: string;
+  cacheInterval?: number;
+  renderScript?: (jsFiles: { js: string[] }) => React.ReactNode;
+}
+```
+
+## Security
+
+- Only HTTP and HTTPS URLs are allowed
+- Server-side execution prevents client-side script injection
+- URL validation prevents malicious protocol usage
+
+## Browser Compatibility
+
+This package works with all browsers supported by Next.js 15+ and React 19.

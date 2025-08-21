@@ -1,0 +1,301 @@
+---
+title: "Python"
+description: "Script loading for Python applications with Django support"
+---
+
+<Warning>
+  **Under Development**: This Python package is currently under active
+  development. If you need immediate support or have specific requirements,
+  please [contact our support team](https://ad-unblock.com/contact) for
+  assistance.
+</Warning>
+
+Server-side script loading package for Python applications, providing secure, cached script loading with Django template tag integration.
+
+## Django Integration
+
+A Django package to fetch and render scripts from a remote URL with template tag integration and caching support.
+
+### Installation
+
+Install the package via pip:
+
+```bash
+pip install adunblock-server-tag-django
+```
+
+Add the `server_tag` app to your `INSTALLED_APPS` in your Django `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    # ... other apps
+    'server_tag',
+]
+```
+
+### Cache Configuration
+
+Configure caching in your `settings.py` (recommended for production):
+
+#### Redis Cache (Production)
+
+```python
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+    }
+}
+```
+
+#### Local Memory Cache (Development)
+
+```python
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+```
+
+### Basic Usage
+
+In your Django template, load the `server_tag_tags` and use the `server_tag` tag:
+
+```html
+{% load server_tag_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Page</title>
+    {% server_tag "https://config.adunblocker.com/server-tag.json" %}
+  </head>
+  <body>
+    <h1>My Page</h1>
+  </body>
+</html>
+```
+
+### Custom Rendering
+
+You can provide a custom Python function to the `render_script` parameter to customize how script tags are rendered:
+
+#### Create Custom Template Tag
+
+```python
+# my_app/templatetags/custom_tags.py
+from django import template
+from django.utils.safestring import mark_safe
+
+register = template.Library()
+
+@register.simple_tag
+def custom_script_renderer(js_files):
+    from django.utils.html import escape
+    scripts = [f'<script src="{escape(src)}" defer></script>' for src in js_files.get('js', [])]
+    return mark_safe('\n'.join(scripts))
+```
+
+#### Use Custom Renderer in Template
+
+```html
+{% load server_tag_tags %} {% load custom_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Page</title>
+    {% server_tag "https://config.adunblocker.com/server-tag.json"
+    render_script=custom_script_renderer %}
+  </head>
+  <body>
+    <h1>My Page</h1>
+  </body>
+</html>
+```
+
+## Expected Remote Response Format
+
+The remote URL should return a JSON response in this format:
+
+```json
+{
+  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
+}
+```
+
+## Django Features
+
+- **Template Tag Integration**: Easy-to-use Django template tag
+- **HTTP Client**: Uses requests library for reliable HTTP operations
+- **Caching**: Built-in Django cache integration with configurable TTL
+- **Error Handling**: Graceful error handling with fallback to empty arrays
+- **Security**: XSS protection with proper HTML escaping
+- **Django Integration**: Proper Django app structure with apps.py
+
+## Advanced Usage
+
+### Template Tag with Cache Control
+
+```html
+{% load server_tag_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Page</title>
+    {% server_tag "https://config.adunblocker.com/server-tag.json"
+    cache_timeout=600 %}
+  </head>
+  <body>
+    <h1>My Page</h1>
+  </body>
+</html>
+```
+
+### Conditional Script Loading
+
+```html
+{% load server_tag_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Page</title>
+    {% if user.is_authenticated %} {% server_tag
+    "https://config.adunblocker.com/user-scripts.json" %} {% else %} {%
+    server_tag "https://config.adunblocker.com/guest-scripts.json" %} {% endif
+    %}
+  </head>
+  <body>
+    <h1>My Page</h1>
+  </body>
+</html>
+```
+
+### Using in Class-Based Views
+
+```python
+from django.views.generic import TemplateView
+from django.template.loader import render_to_string
+
+class MyView(TemplateView):
+    template_name = 'my_template.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # You can also use the server_tag functionality in views
+        context['page_title'] = 'My Custom Page'
+
+        return context
+```
+
+## Configuration Options
+
+The Django package supports several configuration options:
+
+### Settings Configuration
+
+You can configure default settings in your `settings.py`:
+
+```python
+# Optional: Configure default cache timeout
+SERVER_TAG_DEFAULT_TIMEOUT = 300  # 5 minutes
+
+# Optional: Configure default HTTP timeout
+SERVER_TAG_HTTP_TIMEOUT = 10  # 10 seconds
+
+# Optional: Configure retry attempts
+SERVER_TAG_RETRY_ATTEMPTS = 3
+```
+
+### Template Tag Parameters
+
+The `server_tag` template tag accepts these parameters:
+
+| Parameter       | Type       | Default  | Description                            |
+| --------------- | ---------- | -------- | -------------------------------------- |
+| `remote_url`    | `string`   | Required | URL to fetch script configuration from |
+| `cache_timeout` | `number`   | `300`    | Cache duration in seconds              |
+| `render_script` | `function` | `None`   | Custom script rendering function       |
+
+## Error Handling
+
+The Django package includes robust error handling:
+
+```python
+# In your Django settings, you can configure logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'server_tag_errors.log',
+        },
+    },
+    'loggers': {
+        'server_tag': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+```
+
+## Security Considerations
+
+- **URL Validation**: Only HTTP and HTTPS URLs are allowed
+- **XSS Protection**: All output is properly escaped using Django's built-in functions
+- **Error Handling**: Failed requests don't break template rendering
+- **Caching**: Reduces load on remote servers and improves performance
+
+## Performance Tips
+
+1. **Use Redis**: Configure Redis caching for production environments
+2. **Cache Warming**: Pre-warm caches during deployment
+3. **Error Monitoring**: Monitor failed requests and adjust retry logic
+4. **CDN Usage**: Use CDN URLs for better performance
+
+## Requirements
+
+- Python 3.8 or higher
+- Django 3.2 or higher
+- requests 2.25.0 or higher
+
+## Common Patterns
+
+### Base Template with Server Tags
+
+```html
+<!-- base.html -->
+{% load server_tag_tags %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block title %}My Site{% endblock %}</title>
+    {% server_tag "https://config.adunblocker.com/global-scripts.json" %} {%
+    block extra_scripts %}{% endblock %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
+```
+
+### Page-Specific Scripts
+
+```html
+<!-- specific_page.html -->
+{% extends "base.html" %} {% load server_tag_tags %} {% block extra_scripts %}
+{% server_tag "https://config.adunblocker.com/page-specific-scripts.json" %} {%
+endblock %} {% block content %}
+<h1>Specific Page Content</h1>
+{% endblock %}
+```

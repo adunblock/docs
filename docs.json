@@ -21,26 +21,22 @@
         "pages": ["index", "get-started"]
       },
       {
-        "group": "Guides",
+        "group": "Integration Guides",
         "pages": [
           "guides/test-with-chrome-extension",
-          "guides/html-javascript",
           "guides/wordpress",
-          "guides/react-nextjs",
-          "guides/vue-nuxtjs",
-          "guides/angular",
-          "guides/shopify",
-          "guides/wix-squarespace",
-          "guides/system-status"
+          {
+            "group": "Node.js",
+            "pages": ["guides/nextjs", "guides/react-router", "guides/express"]
+          },
+          "guides/php",
+          "guides/python",
+          "guides/html-javascript"
         ]
       },
       {
         "group": "API Reference",
         "pages": ["api-reference/fetch-config"]
-      },
-      {
-        "group": "Support",
-        "pages": ["faq"]
       }
     ]
   },

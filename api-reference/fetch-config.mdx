@@ -33,7 +33,7 @@ curl -X GET http://config.adunblocker.com/server-tag.json
 ```
 
 ```javascript JavaScript
-const response = await fetch('http://config.adunblocker.com/server-tag.json');
+const response = await fetch("http://config.adunblocker.com/server-tag.json");
 const config = await response.json();
 ```
 
@@ -43,30 +43,29 @@ import requests
 response = requests.get('http://config.adunblocker.com/server-tag.json')
 config = response.json()
 ```
+
 </CodeGroup>
 
 #### Response
 
 ```json
 {
-  "js": [
-    "https://cdn.example.com/detection-script.js"
-  ]
+  "js": ["https://cdn.example.com/detection-script.js"]
 }
 ```
 
 #### Response Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `js` | array | Array of JavaScript file URLs for ad blocker detection |
+| Field | Type  | Description                                            |
+| ----- | ----- | ------------------------------------------------------ |
+| `js`  | array | Array of JavaScript file URLs for ad blocker detection |
 
 #### Response Headers
 
-| Header | Description |
-|--------|-------------|
-| `Content-Type` | `application/json` |
-| `ETag` | Entity tag for caching validation |
+| Header          | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `Content-Type`  | `application/json`                                |
+| `ETag`          | Entity tag for caching validation                 |
 | `Last-Modified` | Timestamp when the configuration was last updated |
 
 #### Usage Example
@@ -75,12 +74,13 @@ Once you fetch the configuration, you can dynamically load the JavaScript files:
 
 ```javascript
 // Fetch configuration
-const config = await fetch('http://config.adunblocker.com/server-tag.json')
-  .then(response => response.json());
+const config = await fetch(
+  "http://config.adunblocker.com/server-tag.json"
+).then((response) => response.json());
 
 // Load the JavaScript files
-config.js.forEach(scriptUrl => {
-  const script = document.createElement('script');
+config.js.forEach((scriptUrl) => {
+  const script = document.createElement("script");
   script.src = scriptUrl;
   script.async = true;
   document.head.appendChild(script);
@@ -96,28 +96,29 @@ config.js.forEach(scriptUrl => {
 
 ```javascript
 // Example with conditional request
-const etag = localStorage.getItem('config-etag');
-const headers = etag ? { 'If-None-Match': etag } : {};
+const etag = localStorage.getItem("config-etag");
+const headers = etag ? { "If-None-Match": etag } : {};
 
-const response = await fetch('http://config.adunblocker.com/server-tag.json', {
-  headers
+const response = await fetch("http://config.adunblocker.com/server-tag.json", {
+  headers,
 });
 
 if (response.status === 304) {
   // Use cached configuration
-  console.log('Configuration unchanged');
+  console.log("Configuration unchanged");
 } else {
   // Update cache
   const config = await response.json();
-  localStorage.setItem('config-etag', response.headers.get('ETag'));
-  localStorage.setItem('config-data', JSON.stringify(config));
+  localStorage.setItem("config-etag", response.headers.get("ETag"));
+  localStorage.setItem("config-data", JSON.stringify(config));
 }
 ```
 
 ## Valid Script Sources (Deprecated)
 
 <Warning>
-  This endpoint is deprecated and will be removed in a future version. Please use the `/server-tag.json` endpoint instead.
+  This endpoint is deprecated and will be removed in a future version. Please
+  use the `/server-tag.json` endpoint instead.
 </Warning>
 
 ### Get Valid Script Sources
@@ -130,7 +131,9 @@ curl -X GET https://config.adunblocker.com/valid_script_sources.json
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://config.adunblocker.com/valid_script_sources.json');
+const response = await fetch(
+  "https://config.adunblocker.com/valid_script_sources.json"
+);
 const sources = await response.json();
 ```
 
@@ -140,14 +143,13 @@ import requests
 response = requests.get('https://config.adunblocker.com/valid_script_sources.json')
 sources = response.json()
 ```
+
 </CodeGroup>
 
 #### Response
 
 ```json
-[
-  "https://cdn.example.com/detection-script.js"
-]
+["https://cdn.example.com/detection-script.js"]
 ```
 
 #### Response Format
@@ -156,10 +158,10 @@ The response is a JSON array containing valid JavaScript source URLs as strings.
 
 #### Response Headers
 
-| Header | Description |
-|--------|-------------|
-| `Content-Type` | `application/json` |
-| `ETag` | Entity tag for caching validation |
+| Header          | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `Content-Type`  | `application/json`                                |
+| `ETag`          | Entity tag for caching validation                 |
 | `Last-Modified` | Timestamp when the configuration was last updated |
 
 #### Migration Guide
@@ -168,30 +170,13 @@ If you're currently using this endpoint, migrate to the new `/server-tag.json` e
 
 ```javascript
 // Old (deprecated)
-const sources = await fetch('https://config.adunblocker.com/valid_script_sources.json')
-  .then(response => response.json());
+const sources = await fetch(
+  "https://config.adunblocker.com/valid_script_sources.json"
+).then((response) => response.json());
 
 // New (recommended)
-const config = await fetch('http://config.adunblocker.com/server-tag.json')
-  .then(response => response.json());
+const config = await fetch(
+  "http://config.adunblocker.com/server-tag.json"
+).then((response) => response.json());
 const sources = config.js;
 ```
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card
-    title="JavaScript Integration"
-    icon="js"
-    href="/guides/html-javascript"
-  >
-    Learn how to integrate the JavaScript configuration
-  </Card>
-  <Card
-    title="WordPress Guide"
-    icon="wordpress"
-    href="/guides/wordpress"
-  >
-    Implement ad blocker detection in WordPress
-  </Card>
-</CardGroup>

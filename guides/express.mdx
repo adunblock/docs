@@ -1,0 +1,311 @@
+---
+title: "Express"
+description: "Express middleware for script loading and injection with TypeScript support"
+---
+
+A powerful Express middleware for server-side script loading and injection. Load external scripts from remote JSON endpoints with caching, security, and flexible integration options. Built with TypeScript for full type safety.
+
+## Installation
+
+```bash
+npm install @adunblock/server-tag-express
+```
+
+## Quick Start
+
+```typescript
+import express from "express";
+import { serverTagMiddleware } from "@adunblock/server-tag-express";
+
+const app = express();
+
+// Add ServerTag middleware with TypeScript support
+app.use(
+  serverTagMiddleware({
+    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  })
+);
+
+// Your routes will now have access to script data
+app.get("/", (req, res) => {
+  // Scripts available in res.locals.serverTagScripts (fully typed!)
+  res.send(`
+    <html>
+      <head>
+        ${res.locals.serverTagHtml}
+      </head>
+      <body>
+        <h1>Hello World!</h1>
+      </body>
+    </html>
+  `);
+});
+
+app.listen(3000);
+```
+
+## TypeScript Support
+
+This package is written in TypeScript and provides comprehensive type definitions:
+
+```typescript
+import type {
+  ServerTagMiddlewareOptions,
+  ScriptAttributes,
+  ServerTagConfig,
+} from "@adunblock/server-tag-express";
+
+const config: ServerTagMiddlewareOptions = {
+  remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  cacheInterval: 300,
+  scriptAttributes: {
+    async: true,
+    defer: false,
+  },
+};
+
+app.use(serverTagMiddleware(config));
+```
+
+## Expected Remote Response Format
+
+Your remote URL should return JSON in this format:
+
+```json
+{
+  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
+}
+```
+
+## Integration Methods
+
+### 1. Template Integration (Recommended)
+
+Use with any template engine (EJS, Handlebars, Pug, etc.):
+
+#### EJS Example
+
+```html
+<head>
+  <title>My App</title>
+  <%- serverTagHtml %>
+</head>
+```
+
+#### Handlebars Example
+
+```html
+<head>
+  <title>My App</title>
+  {{{serverTagHtml}}}
+</head>
+```
+
+#### Pug Example
+
+```pug
+head
+  title My App
+  != serverTagHtml
+```
+
+### 2. Auto Injection
+
+Automatically inject scripts into HTML responses:
+
+```typescript
+app.use(
+  serverTagMiddleware({
+    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    injectIntoHtml: true,
+    injectPosition: "</head>", // Where to inject
+    scriptAttributes: { async: true }, // Script tag attributes
+  })
+);
+```
+
+### 3. Manual Injection
+
+Programmatically inject scripts into HTML strings:
+
+```typescript
+import { injectScripts } from "@adunblock/server-tag-express";
+
+app.get("/page", (req, res) => {
+  let html = "<html><head></head><body>Content</body></html>";
+
+  // Inject scripts manually (fully typed)
+  html = injectScripts(html, res.locals.serverTagScripts || []);
+
+  res.send(html);
+});
+```
+
+### 4. Direct Access
+
+Access script data directly for custom implementations:
+
+```typescript
+app.get("/custom", (req, res) => {
+  const scripts: string[] = res.locals.serverTagScripts || [];
+
+  // Custom script rendering with type safety
+  const scriptTags = scripts
+    .map((url) => `<script src="${url}" async></script>`)
+    .join("\n");
+
+  res.send(`<html><head>${scriptTags}</head>...</html>`);
+});
+```
+
+## Configuration Options
+
+| Option             | Type               | Default         | Description                             |
+| ------------------ | ------------------ | --------------- | --------------------------------------- |
+| `remoteUrl`        | `string`           | **Required**    | URL to fetch script configuration from  |
+| `cacheInterval`    | `number`           | `300`           | Cache duration in seconds               |
+| `injectIntoHtml`   | `boolean`          | `true`          | Auto-inject scripts into HTML responses |
+| `injectPosition`   | `string`           | `'</head>'`     | Where to inject scripts in HTML         |
+| `scriptAttributes` | `ScriptAttributes` | `{async: true}` | Additional attributes for script tags   |
+| `onError`          | `function`         | `undefined`     | Custom error handler function           |
+| `shouldInject`     | `function`         | `() => true`    | Conditional injection logic             |
+
+## Advanced Configuration
+
+```typescript
+import type { ServerTagMiddlewareOptions } from "@adunblock/server-tag-express";
+
+const config: ServerTagMiddlewareOptions = {
+  remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  cacheInterval: 600, // 10 minutes
+  injectIntoHtml: true,
+  injectPosition: "</head>",
+  scriptAttributes: {
+    defer: true,
+    "data-source": "server-tag",
+  },
+  shouldInject: (req, res) => {
+    // Don't inject scripts on API routes
+    return !req.path.startsWith("/api/");
+  },
+  onError: (error, req, res) => {
+    console.error("ServerTag error:", error.message);
+    // Optional: send error to monitoring service
+  },
+};
+
+app.use(serverTagMiddleware(config));
+```
+
+## Route-Specific Configuration
+
+Apply ServerTag to specific routes with different configurations:
+
+```typescript
+// Global middleware
+app.use(
+  serverTagMiddleware({
+    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  })
+);
+
+// Route-specific middleware
+app.get(
+  "/special",
+  serverTagMiddleware({
+    remoteUrl: "https://config.adunblocker.com/special-scripts.json",
+    cacheInterval: 60, // 1 minute cache
+    scriptAttributes: { defer: true },
+  }),
+  (req, res) => {
+    res.render("special-page");
+  }
+);
+```
+
+## API Reference
+
+### `serverTagMiddleware(options)`
+
+Main middleware function that adds ServerTag functionality to Express apps.
+
+**Parameters:**
+
+- `options` (ServerTagMiddlewareOptions): Configuration options
+
+**Returns:** Express middleware function
+
+### `injectScripts(html, scripts, attributes, position)`
+
+Helper function to manually inject scripts into HTML strings.
+
+**Parameters:**
+
+- `html` (string): HTML string to modify
+- `scripts` (string[]): Array of script URLs
+- `attributes` (ScriptAttributes): Script tag attributes
+- `position` (string): Where to inject (default: `'</head>'`)
+
+**Returns:** Modified HTML string
+
+### Type Definitions
+
+```typescript
+interface ServerTagConfig {
+  cacheInterval?: number;
+  timeout?: number;
+  retries?: number;
+  retryDelay?: number;
+}
+
+interface ScriptAttributes {
+  async?: boolean;
+  defer?: boolean;
+  type?: string;
+  [key: string]: string | boolean | number | undefined;
+}
+
+interface ServerTagMiddlewareOptions extends ServerTagConfig {
+  remoteUrl: string;
+  injectIntoHtml?: boolean;
+  injectPosition?: string;
+  scriptAttributes?: ScriptAttributes;
+  onError?: (error: Error, req: Request, res: Response) => void;
+  shouldInject?: (req: Request, res: Response) => boolean;
+}
+```
+
+## Error Handling
+
+ServerTag includes robust error handling with custom error types:
+
+```typescript
+import {
+  ServerTagError,
+  NetworkError,
+  ValidationError,
+  TimeoutError,
+} from "@adunblock/server-tag-express";
+
+app.use(
+  serverTagMiddleware({
+    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    onError: (error, req, res) => {
+      if (error instanceof NetworkError) {
+        console.error("Network error:", error.message);
+      } else if (error instanceof ValidationError) {
+        console.error("Validation error:", error.message);
+      } else if (error instanceof TimeoutError) {
+        console.error("Timeout error:", error.message);
+      }
+
+      // Scripts will be empty array on error
+      console.log("Scripts loaded:", res.locals.serverTagScripts?.length || 0);
+    },
+  })
+);
+```
+
+## Browser Compatibility
+
+ServerTag works with all browsers supported by the generated script tags. The middleware itself runs on Node.js 16+.

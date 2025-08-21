@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+- When making updates, follow general style of Mintlify docs
+- When adding or removing any docs, please update @docs.json and @index.mdx at same time

@@ -1,18 +1,18 @@
 ---
-title: "HTML/JavaScript Integration"
+title: "Others (HTML/JS)"
 description: "Direct integration using vanilla HTML and JavaScript"
 ---
 
-# HTML/JavaScript Integration
-
-AdUnblock provides simple HTML/JavaScript integration that works with any website and requires no additional dependencies.
-
 <Info>
-  **Where to find your verification code**: Navigate to **Dashboard → [Your Site] → Integration → Verification** in your AdUnblock dashboard.
+  **Where to find your verification code**: Navigate to **Dashboard → [Your
+  Site] → Integration → Verification** in your AdUnblock dashboard.
 </Info>
 
 <Warning>
-  Ad blockers regularly update their rules, and CDN endpoints may become blocked over time. As a site owner, you are responsible for using the latest valid CDN endpoints by regularly checking the System Status page or implementing server-side fetching from `https://config.adunblocker.com/server-tag.json`.
+  Ad blockers regularly update their rules, and CDN endpoints may become blocked
+  over time. As a site owner, you are responsible for using the latest valid CDN
+  endpoints by regularly checking the System Status page or implementing
+  server-side fetching from `https://config.adunblocker.com/server-tag.json`.
 </Warning>
 
 <Steps>
@@ -44,7 +44,8 @@ Your unique verification code (shown as `YOUR_VERIFICATION_CODE` in the examples
 We provide multiple CDN endpoints to enhance reliability. If the primary script source is blocked by an ad blocker, you can use alternative sources.
 
 <Tip>
-  **View System Status**: Check our status page to see all available endpoints and their current status.
+  **View System Status**: Check our status page to see all available endpoints
+  and their current status.
 </Tip>
 
 You can also fetch the latest list of valid script sources programmatically from our configuration API:
@@ -65,22 +66,3 @@ As a site owner, you are responsible for ensuring your integration uses the late
 ## Need Help?
 
 If you're experiencing any issues with the integration, please contact our support team at [support@adunblock.com](mailto:support@adunblock.com).
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card
-    title="Test Implementation"
-    icon="flask"
-    href="/guides/test-with-chrome-extension"
-  >
-    Verify your HTML/JavaScript integration works correctly
-  </Card>
-  <Card
-    title="WordPress Integration"
-    icon="wordpress"
-    href="/guides/wordpress"
-  >
-    Use our WordPress plugin for easy setup
-  </Card>
-</CardGroup>
