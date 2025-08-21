@@ -10,7 +10,8 @@
   },
   "logo": {
     "light": "/logo.png",
-    "dark": "/logo-dark.png"
+    "dark": "/logo-dark.png",
+    "href": "https://ad-unblock.com"
   },
   "favicon": "/favicon.ico",
   "navigation": {
