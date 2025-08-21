@@ -10,7 +10,7 @@
   },
   "logo": {
     "light": "/logo.png",
-    "dark": "/logo-white.png"
+    "dark": "/logo-dark.png"
   },
   "favicon": "/favicon.png",
   "navigation": {
