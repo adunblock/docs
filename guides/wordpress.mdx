@@ -1,0 +1,330 @@
+---
+title: "WordPress Integration"
+description: "Easy WordPress plugin installation and configuration"
+---
+
+# WordPress Integration
+
+AdUnblock provides a dedicated WordPress plugin that makes integration simple and provides additional features specifically designed for WordPress sites.
+
+## WordPress Plugin Installation
+
+<Steps>
+  <Step title="Download Plugin">
+    Download the AdUnblock WordPress plugin from your dashboard or the WordPress repository.
+  </Step>
+  <Step title="Install Plugin">
+    Upload and activate the plugin through your WordPress admin panel.
+  </Step>
+  <Step title="Configure Settings">
+    Enter your API key and customize the detection behavior.
+  </Step>
+  <Step title="Test Implementation">
+    Use our testing tools to verify everything works correctly.
+  </Step>
+</Steps>
+
+## Method 1: WordPress Admin Installation
+
+### Install from WordPress Repository
+
+1. Go to **Plugins > Add New** in your WordPress admin
+2. Search for "AdUnblock"
+3. Click **Install Now** and then **Activate**
+
+### Manual Installation
+
+1. Download the plugin ZIP file from your AdUnblock dashboard
+2. Go to **Plugins > Add New > Upload Plugin**
+3. Choose the ZIP file and click **Install Now**
+4. Click **Activate Plugin**
+
+## Method 2: Manual Code Integration
+
+If you prefer not to use the plugin, you can add the code manually:
+
+### Add to functions.php
+
+Add this code to your theme's `functions.php` file:
+
+```php
+function adunblock_init() {
+    ?>
+    <script>
+    (function() {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.ad-unblock.com/adunblock.min.js';
+        script.async = true;
+        script.onload = function() {
+            AdUnblock.init({
+                apiKey: 'YOUR_API_KEY',
+                // Add your configuration options here
+            });
+        };
+        document.head.appendChild(script);
+    })();
+    </script>
+    <?php
+}
+add_action('wp_head', 'adunblock_init');
+```
+
+### Using WordPress Hooks
+
+For more control, use WordPress hooks:
+
+```php
+// Only load on single posts
+function adunblock_load_on_posts() {
+    if (is_single()) {
+        wp_enqueue_script(
+            'adunblock',
+            'https://cdn.ad-unblock.com/adunblock.min.js',
+            array(),
+            '1.0.0',
+            true
+        );
+        
+        wp_add_inline_script('adunblock', '
+            AdUnblock.init({
+                apiKey: "YOUR_API_KEY",
+                messageType: "banner",
+                bannerPosition: "top"
+            });
+        ');
+    }
+}
+add_action('wp_enqueue_scripts', 'adunblock_load_on_posts');
+```
+
+## Plugin Configuration
+
+After installing the plugin, configure it through **Settings > AdUnblock**:
+
+### Basic Settings
+
+- **API Key**: Your AdUnblock API key
+- **Enable AdUnblock**: Toggle to enable/disable
+- **Detection Delay**: Time to wait before detection (milliseconds)
+- **Page Types**: Choose where to show AdUnblock (posts, pages, homepage, etc.)
+
+### Message Settings
+
+- **Message Type**: Overlay, banner, or redirect
+- **Message Theme**: Light, dark, or custom
+- **Custom Title**: Override default title
+- **Custom Message**: Override default message text
+- **Button Text**: Customize the action button text
+
+### Advanced Options
+
+- **Exclude Pages**: Specific pages to exclude
+- **User Roles**: Which user roles to show messages to
+- **Mobile Settings**: Mobile-specific configuration
+- **Cache Compatibility**: Settings for caching plugins
+
+## WordPress-Specific Features
+
+### Shortcode Support
+
+Use the `[adunblock]` shortcode to display messages in specific locations:
+
+```
+[adunblock type="banner" theme="dark" title="Custom Title"]
+```
+
+### Widget Support
+
+Add AdUnblock detection to sidebars and widget areas:
+
+1. Go to **Appearance > Widgets**
+2. Add the "AdUnblock Detection" widget
+3. Configure the widget settings
+
+### Gutenberg Block
+
+Use the AdUnblock Gutenberg block:
+
+1. Add a new block in the editor
+2. Search for "AdUnblock"
+3. Configure the block settings
+
+## Theme Integration
+
+### Custom Post Types
+
+Enable AdUnblock for custom post types:
+
+```php
+function adunblock_custom_post_types($post_types) {
+    $post_types[] = 'product';
+    $post_types[] = 'portfolio';
+    return $post_types;
+}
+add_filter('adunblock_post_types', 'adunblock_custom_post_types');
+```
+
+### Conditional Loading
+
+Load AdUnblock based on WordPress conditions:
+
+```php
+function adunblock_conditional_loading() {
+    // Only on blog posts with specific category
+    if (is_single() && has_category('premium-content')) {
+        return true;
+    }
+    
+    // Only for non-logged-in users
+    if (!is_user_logged_in()) {
+        return true;
+    }
+    
+    return false;
+}
+add_filter('adunblock_should_load', 'adunblock_conditional_loading');
+```
+
+## WooCommerce Integration
+
+Special settings for WooCommerce stores:
+
+### Product Pages Only
+
+```php
+function adunblock_woocommerce_products() {
+    if (function_exists('is_product') && is_product()) {
+        AdUnblock.init({
+            apiKey: 'YOUR_API_KEY',
+            messageType: 'banner',
+            message: 'Support our store by disabling your ad blocker'
+        });
+    }
+}
+```
+
+### Cart Abandonment Recovery
+
+```php
+function adunblock_cart_recovery() {
+    if (function_exists('is_cart') && is_cart() && WC()->cart->is_empty()) {
+        AdUnblock.init({
+            apiKey: 'YOUR_API_KEY',
+            message: 'Disable ad blocker to see our special offers!'
+        });
+    }
+}
+```
+
+## Caching Plugin Compatibility
+
+### W3 Total Cache
+
+Add this to your W3TC configuration:
+
+```php
+// Exclude AdUnblock from minification
+add_filter('w3tc_minify_js_do_tag_minification', function($do_tag_minification, $script_tag) {
+    if (strpos($script_tag, 'adunblock') !== false) {
+        return false;
+    }
+    return $do_tag_minification;
+}, 10, 2);
+```
+
+### WP Rocket
+
+Add to WP Rocket excluded files:
+```
+/wp-content/plugins/adunblock/assets/js/adunblock.js
+https://cdn.ad-unblock.com/adunblock.min.js
+```
+
+### LiteSpeed Cache
+
+Configure in LiteSpeed settings:
+- **Cache > Excludes > JS Excludes**: Add `adunblock`
+- **CDN > Include/Exclude > JS Excludes**: Add `adunblock`
+
+## Multisite Configuration
+
+For WordPress multisite networks:
+
+### Network-Wide Activation
+
+1. Network activate the plugin
+2. Configure default settings in **Network Admin > Settings > AdUnblock**
+3. Allow site admins to override settings per site
+
+### Per-Site Configuration
+
+```php
+// Different API keys for different sites
+function adunblock_multisite_config() {
+    $blog_id = get_current_blog_id();
+    $api_keys = array(
+        1 => 'MAIN_SITE_API_KEY',
+        2 => 'BLOG_SITE_API_KEY',
+        3 => 'SHOP_SITE_API_KEY'
+    );
+    
+    return isset($api_keys[$blog_id]) ? $api_keys[$blog_id] : 'DEFAULT_API_KEY';
+}
+```
+
+## Troubleshooting
+
+### Common WordPress Issues
+
+**Plugin conflicts:**
+- Deactivate other plugins temporarily to identify conflicts
+- Check for JavaScript errors in browser console
+- Ensure jQuery is loaded properly
+
+**Theme compatibility:**
+- Switch to a default theme temporarily to test
+- Check if theme has custom header/footer modifications
+- Verify theme supports wp_head() and wp_footer() hooks
+
+**Caching issues:**
+- Clear all caches after installation
+- Exclude AdUnblock files from minification
+- Test with caching disabled
+
+### Performance Optimization
+
+```php
+// Conditional loading for better performance
+function adunblock_optimize_loading() {
+    // Don't load on admin pages
+    if (is_admin()) return false;
+    
+    // Don't load for logged-in administrators
+    if (current_user_can('administrator')) return false;
+    
+    // Only load on content pages
+    if (is_single() || is_page()) return true;
+    
+    return false;
+}
+add_filter('adunblock_should_load', 'adunblock_optimize_loading');
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Test Implementation"
+    icon="flask"
+    href="/guides/test-with-chrome-extension"
+  >
+    Verify your WordPress integration works correctly
+  </Card>
+  <Card
+    title="View Analytics"
+    icon="chart-line"
+    href="https://ad-unblock.com/dashboard"
+  >
+    Monitor your ad blocker detection rates
+  </Card>
+</CardGroup>

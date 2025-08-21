@@ -1,0 +1,275 @@
+---
+title: "HTML/JavaScript Integration"
+description: "Direct integration using vanilla HTML and JavaScript"
+---
+
+# HTML/JavaScript Integration
+
+The simplest way to integrate AdUnblock into your website is using our JavaScript snippet. This method works with any website and requires no additional dependencies.
+
+## Quick Installation
+
+<Steps>
+  <Step title="Get Your API Key">
+    Sign up for AdUnblock and copy your API key from the dashboard.
+  </Step>
+  <Step title="Add the Script">
+    Add the AdUnblock script to your HTML `<head>` section.
+  </Step>
+  <Step title="Configure Options">
+    Customize the behavior and appearance to match your site.
+  </Step>
+  <Step title="Test Implementation">
+    Use our Chrome extension to verify everything works correctly.
+  </Step>
+</Steps>
+
+## Basic Implementation
+
+Add this script tag to the `<head>` section of your HTML:
+
+```html
+<script>
+  (function() {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.ad-unblock.com/adunblock.min.js';
+    script.async = true;
+    script.onload = function() {
+      AdUnblock.init({
+        apiKey: 'YOUR_API_KEY',
+        // Additional configuration options
+      });
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+```
+
+<Warning>
+  Replace `YOUR_API_KEY` with your actual API key from the AdUnblock dashboard.
+</Warning>
+
+## Configuration Options
+
+Customize AdUnblock's behavior with these configuration options:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  
+  // Detection settings
+  detectDelay: 1000,        // Delay before detection (ms)
+  detectRetries: 3,         // Number of detection attempts
+  
+  // Display options
+  showMessage: true,        // Show detection message
+  messageType: 'overlay',   // 'overlay', 'banner', 'redirect'
+  messageTheme: 'light',    // 'light', 'dark', 'custom'
+  
+  // Behavior settings
+  allowClose: true,         // Allow users to close message
+  respectWhitelist: true,   // Respect user whitelist choices
+  
+  // Custom messages
+  title: 'Ad Blocker Detected',
+  message: 'Please consider disabling your ad blocker to support our content.',
+  buttonText: 'I\'ve disabled my ad blocker',
+  
+  // Callbacks
+  onDetected: function() {
+    console.log('Ad blocker detected');
+  },
+  onWhitelisted: function() {
+    console.log('Site whitelisted');
+  },
+  onClosed: function() {
+    console.log('Message closed');
+  }
+});
+```
+
+## Message Types
+
+### Overlay Message
+
+The default overlay appears on top of your content:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  messageType: 'overlay',
+  messageTheme: 'light'
+});
+```
+
+### Banner Message
+
+A less intrusive banner at the top or bottom of the page:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  messageType: 'banner',
+  bannerPosition: 'top' // 'top' or 'bottom'
+});
+```
+
+### Redirect
+
+Redirect users to a dedicated page:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  messageType: 'redirect',
+  redirectUrl: '/adblock-detected'
+});
+```
+
+## Custom Styling
+
+Override the default styles with your own CSS:
+
+```css
+/* Custom overlay styles */
+.adunblock-overlay {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+}
+
+.adunblock-message {
+  background: #333 !important;
+  border-radius: 10px !important;
+  padding: 30px !important;
+}
+
+.adunblock-button {
+  background: #007bff !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+}
+```
+
+## Advanced Features
+
+### Conditional Loading
+
+Load AdUnblock only on specific pages:
+
+```javascript
+// Only load on blog posts
+if (window.location.pathname.includes('/blog/')) {
+  AdUnblock.init({
+    apiKey: 'YOUR_API_KEY'
+  });
+}
+```
+
+### Custom Detection Logic
+
+Add your own detection logic:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  customDetection: function() {
+    // Your custom ad blocker detection code
+    return isAdBlockerDetected;
+  }
+});
+```
+
+### Analytics Integration
+
+Track ad blocker events in Google Analytics:
+
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  onDetected: function() {
+    gtag('event', 'adblock_detected', {
+      event_category: 'AdBlock',
+      event_label: 'User has ad blocker'
+    });
+  },
+  onWhitelisted: function() {
+    gtag('event', 'adblock_whitelisted', {
+      event_category: 'AdBlock',
+      event_label: 'User whitelisted site'
+    });
+  }
+});
+```
+
+## Testing Your Implementation
+
+<Card
+  title="Test with Chrome Extension"
+  icon="chrome"
+  href="/guides/test-with-chrome-extension"
+>
+  Use our Chrome extension to test your AdUnblock implementation.
+</Card>
+
+## Troubleshooting
+
+### Common Issues
+
+**Script not loading:**
+- Check your API key is correct
+- Verify the script URL is accessible
+- Check browser console for errors
+
+**Detection not working:**
+- Ensure the script loads after the DOM is ready
+- Check if other scripts are interfering
+- Verify ad blocker is actually active
+
+**Message not appearing:**
+- Check CSS conflicts
+- Verify message type configuration
+- Test with different ad blockers
+
+### Performance Optimization
+
+```javascript
+// Lazy load AdUnblock
+window.addEventListener('load', function() {
+  AdUnblock.init({
+    apiKey: 'YOUR_API_KEY'
+  });
+});
+
+// Or use intersection observer for specific elements
+const observer = new IntersectionObserver(function(entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      AdUnblock.init({
+        apiKey: 'YOUR_API_KEY'
+      });
+      observer.disconnect();
+    }
+  });
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Test Implementation"
+    icon="flask"
+    href="/guides/test-with-chrome-extension"
+  >
+    Verify your setup works correctly
+  </Card>
+  <Card
+    title="View Analytics"
+    icon="chart-line"
+    href="https://ad-unblock.com/dashboard"
+  >
+    Monitor your ad blocker detection rates
+  </Card>
+</CardGroup>

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "AdUnblock Documentation",
+  "theme": "mint",
+  "description": "Everything you need to know about implementing and optimizing AdUnblock for your website.",
+  "colors": {
+    "primary": "#4CAF50",
+    "light": "#81C784",
+    "dark": "#2E7D32"
+  },
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo-dark.svg"
+  },
+  "favicon": "/favicon.png",
+  "navigation": [
+    {
+      "group": "Introduction",
+      "pages": [
+        "index",
+        "get-started"
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "guides/test-with-chrome-extension",
+        "guides/html-javascript",
+        "guides/wordpress",
+        "guides/react-nextjs",
+        "guides/vue-nuxtjs",
+        "guides/angular",
+        "guides/shopify",
+        "guides/wix-squarespace",
+        "guides/system-status"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/rest-api"
+      ]
+    },
+    {
+      "group": "Support",
+      "pages": [
+        "faq"
+      ]
+    }
+  ],
+  "topbarLinks": [
+    {
+      "name": "Features",
+      "url": "https://ad-unblock.com/features"
+    },
+    {
+      "name": "Pricing",
+      "url": "https://ad-unblock.com/pricing"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Sign Up",
+    "url": "https://ad-unblock.com/signup"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Contact Support",
+      "icon": "headset",
+      "url": "https://ad-unblock.com/contact"
+    },
+    {
+      "name": "Examples",
+      "icon": "code",
+      "url": "https://ad-unblock.com/examples"
+    },
+    {
+      "name": "System Status",
+      "icon": "activity",
+      "url": "https://status.ad-unblock.com"
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/adunblock",
+    "facebook": "https://www.facebook.com/adunblock",
+    "discord": "https://discord.gg/adunblock"
+  }
+}

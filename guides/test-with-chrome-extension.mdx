@@ -1,0 +1,387 @@
+---
+title: "Test With Chrome Extension"
+description: "Test your AdUnblock implementation using our Chrome extension"
+---
+
+# Test With Chrome Extension
+
+Our Chrome extension makes it easy to test your AdUnblock implementation by simulating different ad blocker scenarios and providing detailed debugging information.
+
+## Installing the Extension
+
+<Steps>
+  <Step title="Download Extension">
+    Download the AdUnblock Testing Extension from the Chrome Web Store or your dashboard.
+  </Step>
+  <Step title="Install Extension">
+    Click "Add to Chrome" and confirm the installation.
+  </Step>
+  <Step title="Activate Testing Mode">
+    Click the extension icon and enable testing mode.
+  </Step>
+  <Step title="Test Your Site">
+    Navigate to your website and run tests.
+  </Step>
+</Steps>
+
+## Extension Features
+
+### Ad Blocker Simulation
+
+The extension can simulate different ad blockers:
+
+- **uBlock Origin**: Most popular ad blocker
+- **Adblock Plus**: Classic ad blocker
+- **AdGuard**: Advanced ad blocker
+- **Ghostery**: Privacy-focused blocker
+- **Custom Rules**: Test with specific blocking rules
+
+### Real-Time Testing
+
+<Card
+  title="Live Detection Testing"
+  icon="play"
+>
+  Test your implementation in real-time as you browse your site. The extension shows detection status, timing, and any errors.
+</Card>
+
+### Debug Information
+
+The extension provides detailed information about:
+
+- **Detection Status**: Whether AdUnblock detected the simulated blocker
+- **Response Time**: How quickly detection occurred
+- **Message Display**: Whether your custom message appeared
+- **JavaScript Errors**: Any console errors related to AdUnblock
+- **Network Requests**: All requests made by AdUnblock
+
+## Using the Extension
+
+### Basic Testing
+
+1. **Install and activate** the Chrome extension
+2. **Navigate** to your website
+3. **Click the extension icon** to open the testing panel
+4. **Select an ad blocker** to simulate
+5. **Refresh the page** to test detection
+6. **Review results** in the extension panel
+
+### Advanced Testing Scenarios
+
+#### Test Different User Agents
+
+```javascript
+// Test mobile detection
+navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)';
+
+// Test tablet detection
+navigator.userAgent = 'Mozilla/5.0 (iPad; CPU OS 14_0 like Mac OS X)';
+```
+
+#### Test Different Network Conditions
+
+- **Slow 3G**: Test detection on slow connections
+- **Fast 3G**: Test on mobile networks
+- **Offline**: Test behavior when offline
+
+#### Test Multiple Ad Blockers
+
+Enable multiple ad blocker simulations simultaneously to test edge cases:
+
+```javascript
+// Simulate multiple blockers
+AdUnblockTester.simulate(['ublock', 'adblock-plus', 'ghostery']);
+```
+
+## Testing Scenarios
+
+### Scenario 1: First-Time Visitor
+
+<Steps>
+  <Step title="Clear Browser Data">
+    Clear cookies, localStorage, and sessionStorage
+  </Step>
+  <Step title="Enable Ad Blocker Simulation">
+    Choose uBlock Origin simulation
+  </Step>
+  <Step title="Visit Your Site">
+    Navigate to your homepage
+  </Step>
+  <Step title="Verify Detection">
+    Confirm AdUnblock detects the simulated blocker
+  </Step>
+</Steps>
+
+### Scenario 2: Returning Visitor
+
+<Steps>
+  <Step title="Set Previous Visit">
+    Use extension to simulate previous visit
+  </Step>
+  <Step title="Test Whitelist Status">
+    Verify if user's previous whitelist choice is remembered
+  </Step>
+  <Step title="Test Message Frequency">
+    Ensure messages don't appear too frequently
+  </Step>
+</Steps>
+
+### Scenario 3: Mobile User
+
+<Steps>
+  <Step title="Switch to Mobile View">
+    Use Chrome DevTools mobile simulation
+  </Step>
+  <Step title="Test Touch Interactions">
+    Verify buttons work with touch
+  </Step>
+  <Step title="Test Mobile Layout">
+    Ensure messages display correctly on small screens
+  </Step>
+</Steps>
+
+## Debugging Common Issues
+
+### Detection Not Working
+
+**Check Detection Settings:**
+```javascript
+// Verify your configuration
+AdUnblock.debug = true;
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  detectDelay: 1000,
+  detectRetries: 3
+});
+```
+
+**Console Debugging:**
+```javascript
+// Enable detailed logging
+AdUnblock.setLogLevel('debug');
+
+// Check detection status
+AdUnblock.getDetectionStatus();
+
+// View configuration
+AdUnblock.getConfig();
+```
+
+### Message Not Displaying
+
+**Check CSS Conflicts:**
+```css
+/* Ensure AdUnblock styles aren't overridden */
+.adunblock-overlay {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+```
+
+**Verify Message Configuration:**
+```javascript
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  showMessage: true,
+  messageType: 'overlay',
+  allowClose: true
+});
+```
+
+### Performance Issues
+
+**Check Load Times:**
+```javascript
+// Monitor AdUnblock performance
+performance.mark('adunblock-start');
+AdUnblock.init({
+  apiKey: 'YOUR_API_KEY',
+  onReady: function() {
+    performance.mark('adunblock-end');
+    performance.measure('adunblock-init', 'adunblock-start', 'adunblock-end');
+  }
+});
+```
+
+## Extension API
+
+The testing extension provides an API for automated testing:
+
+### Basic Commands
+
+```javascript
+// Enable ad blocker simulation
+AdUnblockTester.enable('ublock-origin');
+
+// Disable simulation
+AdUnblockTester.disable();
+
+// Get detection results
+const results = AdUnblockTester.getResults();
+
+// Clear test data
+AdUnblockTester.clearData();
+```
+
+### Advanced Testing
+
+```javascript
+// Run comprehensive test suite
+AdUnblockTester.runTestSuite({
+  blockers: ['ublock', 'adblock-plus', 'ghostery'],
+  scenarios: ['first-visit', 'returning-user', 'mobile'],
+  pages: ['/home', '/blog', '/product'],
+  callback: function(results) {
+    console.log('Test results:', results);
+  }
+});
+```
+
+### Custom Test Scenarios
+
+```javascript
+// Create custom test scenario
+AdUnblockTester.createScenario({
+  name: 'Premium Content Test',
+  setup: function() {
+    // Setup test environment
+    window.location.hash = '#premium-content';
+  },
+  test: function() {
+    // Run specific tests
+    return AdUnblockTester.detectAdBlock();
+  },
+  cleanup: function() {
+    // Clean up after test
+    window.location.hash = '';
+  }
+});
+```
+
+## Automated Testing
+
+### Integration with Testing Frameworks
+
+#### Selenium WebDriver
+
+```python
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+# Setup Chrome with AdUnblock extension
+chrome_options = Options()
+chrome_options.add_extension('/path/to/adunblock-tester.crx')
+
+driver = webdriver.Chrome(options=chrome_options)
+
+# Run tests
+driver.get('https://your-website.com')
+driver.execute_script('AdUnblockTester.enable("ublock-origin")')
+driver.refresh()
+
+# Check results
+results = driver.execute_script('return AdUnblockTester.getResults()')
+assert results['detected'] == True
+```
+
+#### Puppeteer
+
+```javascript
+const puppeteer = require('puppeteer');
+
+(async () => {
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: ['--load-extension=/path/to/adunblock-extension']
+  });
+  
+  const page = await browser.newPage();
+  await page.goto('https://your-website.com');
+  
+  // Enable ad blocker simulation
+  await page.evaluate(() => {
+    AdUnblockTester.enable('ublock-origin');
+  });
+  
+  await page.reload();
+  
+  // Check detection
+  const detected = await page.evaluate(() => {
+    return AdUnblockTester.getResults().detected;
+  });
+  
+  console.log('Ad blocker detected:', detected);
+  await browser.close();
+})();
+```
+
+## Test Reports
+
+### Generate Test Reports
+
+The extension can generate detailed test reports:
+
+```javascript
+// Generate comprehensive report
+const report = AdUnblockTester.generateReport({
+  includeScreenshots: true,
+  includeTimeline: true,
+  includeConsoleLog: true
+});
+
+// Export report
+AdUnblockTester.exportReport(report, 'json'); // or 'html', 'csv'
+```
+
+### Report Contents
+
+Test reports include:
+
+- **Detection Results**: Success/failure rates
+- **Performance Metrics**: Load times, response times
+- **Error Logs**: JavaScript errors and warnings
+- **Screenshots**: Visual evidence of message display
+- **Network Analysis**: Request/response details
+- **User Agent Analysis**: Browser/device compatibility
+
+## Best Practices
+
+### Regular Testing
+
+- **Test after code changes**: Always test after updating your implementation
+- **Test different browsers**: Verify compatibility across browsers
+- **Test mobile devices**: Ensure mobile functionality works correctly
+- **Test different ad blockers**: Each ad blocker behaves differently
+
+### Monitoring
+
+- **Set up alerts**: Get notified when detection rates drop
+- **Monitor performance**: Track impact on page load times
+- **Review analytics**: Regularly check detection and conversion rates
+
+### Documentation
+
+- **Document test procedures**: Create repeatable testing processes
+- **Record test results**: Keep history of test outcomes
+- **Share with team**: Ensure everyone knows how to test
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="View Analytics"
+    icon="chart-line"
+    href="https://ad-unblock.com/dashboard"
+  >
+    Monitor your real-world detection rates and performance
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/rest-api"
+  >
+    Explore advanced customization options
+  </Card>
+</CardGroup>
