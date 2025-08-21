@@ -13,41 +13,43 @@
     "dark": "/logo-dark.svg"
   },
   "favicon": "/favicon.png",
-  "navigation": [
-    {
-      "group": "Introduction",
-      "pages": [
-        "index",
-        "get-started"
-      ]
-    },
-    {
-      "group": "Guides",
-      "pages": [
-        "guides/test-with-chrome-extension",
-        "guides/html-javascript",
-        "guides/wordpress",
-        "guides/react-nextjs",
-        "guides/vue-nuxtjs",
-        "guides/angular",
-        "guides/shopify",
-        "guides/wix-squarespace",
-        "guides/system-status"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/rest-api"
-      ]
-    },
-    {
-      "group": "Support",
-      "pages": [
-        "faq"
-      ]
-    }
-  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Introduction",
+        "pages": [
+          "index",
+          "get-started"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/test-with-chrome-extension",
+          "guides/html-javascript",
+          "guides/wordpress",
+          "guides/react-nextjs",
+          "guides/vue-nuxtjs",
+          "guides/angular",
+          "guides/shopify",
+          "guides/wix-squarespace",
+          "guides/system-status"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/rest-api"
+        ]
+      },
+      {
+        "group": "Support",
+        "pages": [
+          "faq"
+        ]
+      }
+    ]
+  },
   "topbarLinks": [
     {
       "name": "Features",
