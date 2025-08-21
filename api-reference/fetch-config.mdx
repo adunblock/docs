@@ -1,0 +1,134 @@
+---
+title: "Fetch Config"
+description: "Fetch AdUnblock latest configuration"
+---
+
+# Configuration API Reference
+
+The AdUnblock Configuration API provides access to the latest JavaScript configuration files needed for ad blocker detection on your website.
+
+## Base URL
+
+```
+http://config.adunblocker.com
+```
+
+## Authentication
+
+This API endpoint is publicly accessible and does not require authentication.
+
+## Caching
+
+The API responses are cached for optimal performance and support standard HTTP caching headers for efficient client-side caching.
+
+## Server Tag Configuration
+
+### Get JavaScript Configuration
+
+Retrieve the latest JavaScript files needed for ad blocker detection.
+
+<CodeGroup>
+```bash cURL
+curl -X GET http://config.adunblocker.com/server-tag.json
+```
+
+```javascript JavaScript
+const response = await fetch('http://config.adunblocker.com/server-tag.json');
+const config = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get('http://config.adunblocker.com/server-tag.json')
+config = response.json()
+```
+</CodeGroup>
+
+#### Response
+
+```json
+{
+  "js": [
+    "https://cdn.example.com/detection-script.js"
+  ]
+}
+```
+
+#### Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `js` | array | Array of JavaScript file URLs for ad blocker detection |
+
+#### Response Headers
+
+| Header | Description |
+|--------|-------------|
+| `Content-Type` | `application/json` |
+| `ETag` | Entity tag for caching validation |
+| `Last-Modified` | Timestamp when the configuration was last updated |
+
+#### Usage Example
+
+Once you fetch the configuration, you can dynamically load the JavaScript files:
+
+```javascript
+// Fetch configuration
+const config = await fetch('http://config.adunblocker.com/server-tag.json')
+  .then(response => response.json());
+
+// Load the JavaScript files
+config.js.forEach(scriptUrl => {
+  const script = document.createElement('script');
+  script.src = scriptUrl;
+  script.async = true;
+  document.head.appendChild(script);
+});
+```
+
+#### Caching Recommendations
+
+- The API supports standard HTTP caching headers
+- Implement conditional requests using `If-None-Match` header with ETag
+- Cache responses locally for better performance
+- Check for updates periodically (e.g., every hour)
+
+```javascript
+// Example with conditional request
+const etag = localStorage.getItem('config-etag');
+const headers = etag ? { 'If-None-Match': etag } : {};
+
+const response = await fetch('http://config.adunblocker.com/server-tag.json', {
+  headers
+});
+
+if (response.status === 304) {
+  // Use cached configuration
+  console.log('Configuration unchanged');
+} else {
+  // Update cache
+  const config = await response.json();
+  localStorage.setItem('config-etag', response.headers.get('ETag'));
+  localStorage.setItem('config-data', JSON.stringify(config));
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="JavaScript Integration"
+    icon="js"
+    href="/guides/html-javascript"
+  >
+    Learn how to integrate the JavaScript configuration
+  </Card>
+  <Card
+    title="WordPress Guide"
+    icon="wordpress"
+    href="/guides/wordpress"
+  >
+    Implement ad blocker detection in WordPress
+  </Card>
+</CardGroup>
