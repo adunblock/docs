@@ -68,13 +68,13 @@ In your Django template, load the `server_tag_tags` and use the `server_tag` tag
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Page</title>
-    {% server_tag "https://config.adunblocker.com/server-tag.json" %}
-  </head>
-  <body>
-    <h1>My Page</h1>
-  </body>
+<head>
+  <title>My Page</title>
+  {% server_tag "https://config.adunblocker.com/server-tag.json" %}
+</head>
+<body>
+  <h1>My Page</h1>
+</body>
 </html>
 ```
 
@@ -101,18 +101,18 @@ def custom_script_renderer(js_files):
 #### Use Custom Renderer in Template
 
 ```html
-{% load server_tag_tags %} {% load custom_tags %}
+{% load server_tag_tags %}
+{% load custom_tags %}
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Page</title>
-    {% server_tag "https://config.adunblocker.com/server-tag.json"
-    render_script=custom_script_renderer %}
-  </head>
-  <body>
-    <h1>My Page</h1>
-  </body>
+<head>
+  <title>My Page</title>
+  {% server_tag "https://config.adunblocker.com/server-tag.json" render_script=custom_script_renderer %}
+</head>
+<body>
+  <h1>My Page</h1>
+</body>
 </html>
 ```
 
@@ -122,7 +122,10 @@ The remote URL should return a JSON response in this format:
 
 ```json
 {
-  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
+  "js": [
+    "https://example.com/script1.js",
+    "https://example.com/script2.js"
+  ]
 }
 ```
 
@@ -144,14 +147,13 @@ The remote URL should return a JSON response in this format:
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Page</title>
-    {% server_tag "https://config.adunblocker.com/server-tag.json"
-    cache_timeout=600 %}
-  </head>
-  <body>
-    <h1>My Page</h1>
-  </body>
+<head>
+  <title>My Page</title>
+  {% server_tag "https://config.adunblocker.com/server-tag.json" cache_timeout=600 %}
+</head>
+<body>
+  <h1>My Page</h1>
+</body>
 </html>
 ```
 
@@ -162,16 +164,17 @@ The remote URL should return a JSON response in this format:
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Page</title>
-    {% if user.is_authenticated %} {% server_tag
-    "https://config.adunblocker.com/user-scripts.json" %} {% else %} {%
-    server_tag "https://config.adunblocker.com/guest-scripts.json" %} {% endif
-    %}
-  </head>
-  <body>
-    <h1>My Page</h1>
-  </body>
+<head>
+  <title>My Page</title>
+  {% if user.is_authenticated %}
+    {% server_tag "https://config.adunblocker.com/user-scripts.json" %}
+  {% else %}
+    {% server_tag "https://config.adunblocker.com/guest-scripts.json" %}
+  {% endif %}
+</head>
+<body>
+  <h1>My Page</h1>
+</body>
 </html>
 ```
 
@@ -278,14 +281,14 @@ LOGGING = {
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>{% block title %}My Site{% endblock %}</title>
-    {% server_tag "https://config.adunblocker.com/global-scripts.json" %} {%
-    block extra_scripts %}{% endblock %}
-  </head>
-  <body>
-    {% block content %}{% endblock %}
-  </body>
+<head>
+  <title>{% block title %}My Site{% endblock %}</title>
+  {% server_tag "https://config.adunblocker.com/global-scripts.json" %}
+  {% block extra_scripts %}{% endblock %}
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
 </html>
 ```
 
@@ -293,9 +296,33 @@ LOGGING = {
 
 ```html
 <!-- specific_page.html -->
-{% extends "base.html" %} {% load server_tag_tags %} {% block extra_scripts %}
-{% server_tag "https://config.adunblocker.com/page-specific-scripts.json" %} {%
-endblock %} {% block content %}
-<h1>Specific Page Content</h1>
+{% extends "base.html" %}
+{% load server_tag_tags %}
+
+{% block extra_scripts %}
+  {% server_tag "https://config.adunblocker.com/page-specific-scripts.json" %}
+{% endblock %}
+
+{% block content %}
+  <h1>Specific Page Content</h1>
 {% endblock %}
 ```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Test Implementation"
+    icon="flask"
+    href="/guides/test-with-chrome-extension"
+  >
+    Test your Django integration with our Chrome extension
+  </Card>
+  <Card
+    title="Node.js Integration"
+    icon="node"
+    href="/guides/nextjs"
+  >
+    Learn about Node.js server-side integration
+  </Card>
+</CardGroup>
