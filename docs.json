@@ -9,8 +9,8 @@
     "dark": "#2E7D32"
   },
   "logo": {
-    "light": "/logo.png",
-    "dark": "/logo-dark.png",
+    "light": "/logo-with-name.png",
+    "dark": "/logo-with-name-dark.png",
     "href": "https://ad-unblock.com"
   },
   "favicon": "/favicon.ico",
