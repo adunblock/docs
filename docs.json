@@ -13,7 +13,10 @@
     "dark": "/logo-with-name-dark.png",
     "href": "https://ad-unblock.com"
   },
-  "favicon": "/favicon.png",
+  "favicon": {
+    "light": "/favicon.png",
+    "dark": "/favicon-dark.png"
+  },
   "navigation": {
     "groups": [
       {
