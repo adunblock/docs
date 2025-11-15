@@ -21,7 +21,7 @@ import ServerTag from "@adunblock/server-tag-nextjs";
 export default function MyPage() {
   return (
     <div>
-      <ServerTag remoteUrl="https://config.adunblocker.com/server-tag.json" />
+      <ServerTag remoteUrl="https://public.adunblocker.com/api/vendor_scripts" />
       <h1>My Page Content</h1>
     </div>
   );
@@ -39,7 +39,7 @@ export default function MyPage() {
   return (
     <div>
       <ServerTag
-        remoteUrl="https://config.adunblocker.com/server-tag.json"
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
         cacheInterval={600} // Cache for 10 minutes (default: 300 seconds)
       />
       <h1>My Page Content</h1>
@@ -60,9 +60,9 @@ export default function MyPage() {
   return (
     <div>
       <ServerTag
-        remoteUrl="https://config.adunblocker.com/server-tag.json"
-        renderScript={({ js }) =>
-          js.map((src) => (
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
+        renderScript={(scripts) =>
+          scripts.map((src) => (
             <Script
               key={src}
               src={src}
@@ -94,7 +94,7 @@ export default function MyPage() {
 interface ServerTagProps {
   remoteUrl: string;
   cacheInterval?: number;
-  renderScript?: (jsFiles: { js: string[] }) => React.ReactNode;
+  renderScript?: (scripts: string[]) => React.ReactNode;
 }
 ```
 

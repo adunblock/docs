@@ -40,7 +40,7 @@ Test your AdUnblock integration using our Chrome extension before deploying to p
     - Navigate to your website in Chrome
     - Click the **AdUnblock Devtool** extension icon in your browser toolbar
     - Enter your **Verification Code**: `YOUR_VERIFICATION_CODE`
-    - Enter the **Script URL**: `LATEST_SCRIPT_URL` (fetch the latest URL from: `https://config.adunblocker.com/server-tag.json`)
+    - Enter the **Script URL**: `LATEST_SCRIPT_URL` (fetch the latest URL from: `https://public.adunblocker.com/api/vendor_scripts`)
     - Click **Apply to Current Tab**
     - The page will automatically reload with the AdUnblock script injected
     
@@ -76,7 +76,7 @@ We provide multiple CDN endpoints to enhance reliability. If the primary script 
 You can also fetch the latest list of valid script sources programmatically from our configuration API:
 
 ```
-https://config.adunblocker.com/server-tag.json
+https://public.adunblocker.com/api/vendor_scripts
 ```
 
 ## Need Help?

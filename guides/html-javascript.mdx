@@ -12,7 +12,7 @@ description: "Direct integration using vanilla HTML and JavaScript"
   Ad blockers regularly update their rules, and CDN endpoints may become blocked
   over time. As a site owner, you are responsible for using the latest valid CDN
   endpoints by regularly checking the System Status page or implementing
-  server-side fetching from `https://config.adunblocker.com/server-tag.json`.
+  server-side fetching from `https://public.adunblocker.com/api/vendor_scripts`.
 </Warning>
 
 <Steps>
@@ -25,7 +25,7 @@ description: "Direct integration using vanilla HTML and JavaScript"
     
     **Important:** 
     - Replace `YOUR_VERIFICATION_CODE` with your unique verification code from the dashboard.
-    - Replace `LATEST_SCRIPT_URL` with the current script URL. Fetch the latest script URL from: `https://config.adunblocker.com/server-tag.json`
+    - Replace `LATEST_SCRIPT_URL` with the current script URL. Fetch the latest script URL from: `https://public.adunblocker.com/api/vendor_scripts`
   </Step>
   
   <Step title="Server-side Integration (Recommended)">
@@ -53,7 +53,7 @@ We provide multiple CDN endpoints to enhance reliability. If the primary script 
 You can also fetch the latest list of valid script sources programmatically from our configuration API:
 
 ```
-https://config.adunblocker.com/server-tag.json
+https://public.adunblocker.com/api/vendor_scripts
 ```
 
 ### Important Notice
@@ -62,7 +62,7 @@ As a site owner, you are responsible for ensuring your integration uses the late
 
 - Regularly check the System Status page for updated endpoint information
 - For production environments, implement server-side fetching from our API with proper caching
-- Use the API endpoint `https://config.adunblocker.com/server-tag.json` to programmatically retrieve the latest valid scripts
+- Use the API endpoint `https://public.adunblocker.com/api/vendor_scripts` to programmatically retrieve the latest valid scripts
 - Never implement client-side fallbacks that fetch from our API directly
 
 ## Need help with implementation?

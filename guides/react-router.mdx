@@ -54,7 +54,7 @@ export const routes = [
     element: <HomePage />,
     loader: () =>
       serverTagLoader({
-        remoteUrl: "https://config.adunblocker.com/server-tag.json",
+        remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
         cacheInterval: 300, // Optional: cache for 5 minutes
       }),
   },
@@ -136,7 +136,7 @@ import { Outlet } from "react-router-dom";
 export async function loader() {
   // Load global scripts for all pages
   return await serverTagLoader({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   });
 }
 
@@ -168,13 +168,13 @@ export async function loader() {
   const [scriptData, dashboardData] = await Promise.all([
     // Load scripts only for this page
     serverTagLoader({
-      remoteUrl: `https://config.adunblocker.com/dashboard-scripts.json`,
+      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts`,
     }),
     // Load other page data
     fetch("https://api.example.com/dashboard").then((r) => r.json()),
   ]);
 
-  // Spread the scriptData to make the `js` property available
+  // Spread the scriptData to make the scripts available
   return { ...scriptData, dashboardData };
 }
 
@@ -189,9 +189,7 @@ export default function DashboardPage() {
 The remote URL should return a JSON response in this format:
 
 ```json
-{
-  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
-}
+["https://example.com/script1.js", "https://example.com/script2.js"]
 ```
 
 ## Custom Script Rendering
@@ -206,9 +204,9 @@ function MyPage() {
     <div>
       <ServerTag
         async={false}
-        renderScript={({ js }) => (
+        renderScript={(scripts) => (
           <>
-            {js.map((src) => (
+            {scripts.map((src) => (
               <script
                 key={src}
                 src={src}
@@ -253,14 +251,14 @@ Async function for loading scripts in React Router loaders. Works with both data
 // Simple loader
 export const loader = () =>
   serverTagLoader({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   });
 
 // Combined with other data
 export async function loader({ params }) {
   const [scripts, data] = await Promise.all([
     serverTagLoader({
-      remoteUrl: `https://config.adunblocker.com/server-tag.json`,
+      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts`,
       cacheInterval: 600,
     }),
     fetch("/api/data").then((r) => r.json()),
@@ -274,7 +272,7 @@ export async function loader({ params }) {
 ```typescript
 interface ServerTagProps {
   async?: boolean;
-  renderScript?: (jsFiles: { js: string[] }) => React.ReactNode;
+  renderScript?: (scripts: string[]) => React.ReactNode;
 }
 
 interface ServerTagLoaderArgs {
@@ -283,7 +281,7 @@ interface ServerTagLoaderArgs {
 }
 
 interface ServerTagLoaderData {
-  js: string[];
+  scripts: string[];
 }
 ```
 

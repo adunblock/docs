@@ -28,9 +28,7 @@ Server-side script loading packages for PHP applications, providing secure, cach
 All PHP packages expect the remote URL to return JSON in this format:
 
 ```json
-{
-  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
-}
+["https://example.com/script1.js", "https://example.com/script2.js"]
 ```
 
 ## Laravel Integration
@@ -56,7 +54,7 @@ In your Blade template, you can now use the `server_tag` function:
 <html>
 <head>
   <title>My Page</title>
-  {!! server_tag('https://config.adunblocker.com/server-tag.json') !!}
+  {!! server_tag('https://public.adunblocker.com/api/vendor_scripts') !!}
 </head>
 <body>
   <h1>My Page</h1>
@@ -74,11 +72,11 @@ You can provide a custom closure to the `render_script` argument to render the s
 <head>
   <title>My Page</title>
   {!!
-    server_tag('https://config.adunblocker.com/server-tag.json', 300, function($jsFiles) {
-      $scripts = array_map(function ($src) {
+    server_tag('https://public.adunblocker.com/api/vendor_scripts', 300, function($scripts) {
+      $scriptTags = array_map(function ($src) {
         return "<script src=\"{$src}\" defer></script>";
-      }, $jsFiles['js'] ?? []);
-      return implode("\n", $scripts);
+      }, $scripts);
+      return implode("\n", $scriptTags);
     })
   !!}
 </head>
@@ -133,7 +131,7 @@ In your Twig template, you can now use the `server_tag` function:
 <html>
 <head>
   <title>My Page</title>
-  {{ server_tag('https://config.adunblocker.com/server-tag.json') }}
+  {{ server_tag('https://public.adunblocker.com/api/vendor_scripts') }}
 </head>
 <body>
   <h1>My Page</h1>
@@ -150,7 +148,7 @@ You can provide a custom callable to the `render_script` parameter to customize 
 <html>
 <head>
   <title>My Page</title>
-  {{ server_tag('https://config.adunblocker.com/server-tag.json', 300, custom_renderer) }}
+  {{ server_tag('https://public.adunblocker.com/api/vendor_scripts', 300, custom_renderer) }}
 </head>
 <body>
   <h1>My Page</h1>

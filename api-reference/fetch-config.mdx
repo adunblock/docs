@@ -10,7 +10,7 @@ The AdUnblock Configuration API provides access to the latest JavaScript configu
 ## Base URL
 
 ```
-http://config.adunblocker.com
+https://public.adunblocker.com
 ```
 
 ## Authentication
@@ -29,19 +29,19 @@ Retrieve the latest JavaScript files needed for ad blocker detection.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET http://config.adunblocker.com/server-tag.json
+curl -X GET https://public.adunblocker.com/api/vendor_scripts
 ```
 
 ```javascript JavaScript
-const response = await fetch("http://config.adunblocker.com/server-tag.json");
-const config = await response.json();
+const response = await fetch("https://public.adunblocker.com/api/vendor_scripts");
+const scripts = await response.json();
 ```
 
 ```python Python
 import requests
 
-response = requests.get('http://config.adunblocker.com/server-tag.json')
-config = response.json()
+response = requests.get('https://public.adunblocker.com/api/vendor_scripts')
+scripts = response.json()
 ```
 
 </CodeGroup>
@@ -49,16 +49,12 @@ config = response.json()
 #### Response
 
 ```json
-{
-  "js": ["https://cdn.example.com/detection-script.js"]
-}
+["https://cdn.example.com/detection-script.js"]
 ```
 
-#### Response Fields
+#### Response Format
 
-| Field | Type  | Description                                            |
-| ----- | ----- | ------------------------------------------------------ |
-| `js`  | array | Array of JavaScript file URLs for ad blocker detection |
+The response is a JSON array containing JavaScript file URLs for ad blocker detection as strings.
 
 #### Response Headers
 
@@ -74,12 +70,12 @@ Once you fetch the configuration, you can dynamically load the JavaScript files:
 
 ```javascript
 // Fetch configuration
-const config = await fetch(
-  "http://config.adunblocker.com/server-tag.json"
+const scripts = await fetch(
+  "https://public.adunblocker.com/api/vendor_scripts"
 ).then((response) => response.json());
 
 // Load the JavaScript files
-config.js.forEach((scriptUrl) => {
+scripts.forEach((scriptUrl) => {
   const script = document.createElement("script");
   script.src = scriptUrl;
   script.async = true;
@@ -99,7 +95,7 @@ config.js.forEach((scriptUrl) => {
 const etag = localStorage.getItem("config-etag");
 const headers = etag ? { "If-None-Match": etag } : {};
 
-const response = await fetch("http://config.adunblocker.com/server-tag.json", {
+const response = await fetch("https://public.adunblocker.com/api/vendor_scripts", {
   headers,
 });
 
@@ -108,9 +104,9 @@ if (response.status === 304) {
   console.log("Configuration unchanged");
 } else {
   // Update cache
-  const config = await response.json();
+  const scripts = await response.json();
   localStorage.setItem("config-etag", response.headers.get("ETag"));
-  localStorage.setItem("config-data", JSON.stringify(config));
+  localStorage.setItem("config-data", JSON.stringify(scripts));
 }
 ```
 
@@ -118,7 +114,7 @@ if (response.status === 304) {
 
 <Warning>
   This endpoint is deprecated and will be removed in a future version. Please
-  use the `/server-tag.json` endpoint instead.
+  use the `/api/vendor_scripts` endpoint instead.
 </Warning>
 
 ### Get Valid Script Sources
@@ -166,7 +162,7 @@ The response is a JSON array containing valid JavaScript source URLs as strings.
 
 #### Migration Guide
 
-If you're currently using this endpoint, migrate to the new `/server-tag.json` endpoint:
+If you're currently using this endpoint, migrate to the new `/api/vendor_scripts` endpoint:
 
 ```javascript
 // Old (deprecated)
@@ -175,8 +171,8 @@ const sources = await fetch(
 ).then((response) => response.json());
 
 // New (recommended)
-const config = await fetch(
-  "http://config.adunblocker.com/server-tag.json"
+const scripts = await fetch(
+  "https://public.adunblocker.com/api/vendor_scripts"
 ).then((response) => response.json());
-const sources = config.js;
+// scripts is already an array, no need to access .js property
 ```

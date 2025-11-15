@@ -22,7 +22,7 @@ const app = express();
 // Add ServerTag middleware with TypeScript support
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   })
 );
 
@@ -56,7 +56,7 @@ import type {
 } from "@adunblock/server-tag-express";
 
 const config: ServerTagMiddlewareOptions = {
-  remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   cacheInterval: 300,
   scriptAttributes: {
     async: true,
@@ -72,9 +72,7 @@ app.use(serverTagMiddleware(config));
 Your remote URL should return JSON in this format:
 
 ```json
-{
-  "js": ["https://example.com/script1.js", "https://example.com/script2.js"]
-}
+["https://example.com/script1.js", "https://example.com/script2.js"]
 ```
 
 ## Integration Methods
@@ -116,7 +114,7 @@ Automatically inject scripts into HTML responses:
 ```typescript
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
     injectIntoHtml: true,
     injectPosition: "</head>", // Where to inject
     scriptAttributes: { async: true }, // Script tag attributes
@@ -176,7 +174,7 @@ app.get("/custom", (req, res) => {
 import type { ServerTagMiddlewareOptions } from "@adunblock/server-tag-express";
 
 const config: ServerTagMiddlewareOptions = {
-  remoteUrl: "https://config.adunblocker.com/server-tag.json",
+  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   cacheInterval: 600, // 10 minutes
   injectIntoHtml: true,
   injectPosition: "</head>",
@@ -205,7 +203,7 @@ Apply ServerTag to specific routes with different configurations:
 // Global middleware
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   })
 );
 
@@ -213,7 +211,7 @@ app.use(
 app.get(
   "/special",
   serverTagMiddleware({
-    remoteUrl: "https://config.adunblocker.com/special-scripts.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
     cacheInterval: 60, // 1 minute cache
     scriptAttributes: { defer: true },
   }),
@@ -289,7 +287,7 @@ import {
 
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://config.adunblocker.com/server-tag.json",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
     onError: (error, req, res) => {
       if (error instanceof NetworkError) {
         console.error("Network error:", error.message);

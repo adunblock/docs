@@ -70,7 +70,7 @@ In your Django template, load the `server_tag_tags` and use the `server_tag` tag
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://config.adunblocker.com/server-tag.json" %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -92,10 +92,10 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 @register.simple_tag
-def custom_script_renderer(js_files):
+def custom_script_renderer(scripts):
     from django.utils.html import escape
-    scripts = [f'<script src="{escape(src)}" defer></script>' for src in js_files.get('js', [])]
-    return mark_safe('\n'.join(scripts))
+    script_tags = [f'<script src="{escape(src)}" defer></script>' for src in scripts]
+    return mark_safe('\n'.join(script_tags))
 ```
 
 #### Use Custom Renderer in Template
@@ -108,7 +108,7 @@ def custom_script_renderer(js_files):
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://config.adunblocker.com/server-tag.json" render_script=custom_script_renderer %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" render_script=custom_script_renderer %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -121,12 +121,10 @@ def custom_script_renderer(js_files):
 The remote URL should return a JSON response in this format:
 
 ```json
-{
-  "js": [
-    "https://example.com/script1.js",
-    "https://example.com/script2.js"
-  ]
-}
+[
+  "https://example.com/script1.js",
+  "https://example.com/script2.js"
+]
 ```
 
 ## Django Features
@@ -149,7 +147,7 @@ The remote URL should return a JSON response in this format:
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://config.adunblocker.com/server-tag.json" cache_timeout=600 %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" cache_timeout=600 %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -167,9 +165,9 @@ The remote URL should return a JSON response in this format:
 <head>
   <title>My Page</title>
   {% if user.is_authenticated %}
-    {% server_tag "https://config.adunblocker.com/user-scripts.json" %}
+    {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
   {% else %}
-    {% server_tag "https://config.adunblocker.com/guest-scripts.json" %}
+    {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
   {% endif %}
 </head>
 <body>
@@ -283,7 +281,7 @@ LOGGING = {
 <html>
 <head>
   <title>{% block title %}My Site{% endblock %}</title>
-  {% server_tag "https://config.adunblocker.com/global-scripts.json" %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
   {% block extra_scripts %}{% endblock %}
 </head>
 <body>
@@ -300,7 +298,7 @@ LOGGING = {
 {% load server_tag_tags %}
 
 {% block extra_scripts %}
-  {% server_tag "https://config.adunblocker.com/page-specific-scripts.json" %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
 {% endblock %}
 
 {% block content %}
