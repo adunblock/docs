@@ -24,6 +24,13 @@ This package is designed specifically for:
 npm install @adunblock/server-tag-react-router
 ```
 
+<Warning>
+  Every rendered `<script>` tag **must** include a `data-code` attribute set
+  to your Account ID (verification code). AdUnblock uses this value to verify
+  that the script is running on your registered domain. Find your Account ID
+  at **Dashboard → [Your Site] → Integration → Verification**.
+</Warning>
+
 ## Usage
 
 ### Data Mode with Custom Server
@@ -42,7 +49,7 @@ import ServerTag, { serverTagLoader } from "@adunblock/server-tag-react-router";
 function HomePage() {
   return (
     <div>
-      <ServerTag />
+      <ServerTag scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }} />
       <h1>Home Page</h1>
     </div>
   );
@@ -144,7 +151,7 @@ export default function Root() {
   return (
     <html>
       <head>
-        <ServerTag />
+        <ServerTag scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }} />
         {/* ... other head elements */}
       </head>
       <body>
@@ -227,10 +234,11 @@ function MyPage() {
 
 ### ServerTag Component
 
-| Prop           | Type       | Default     | Description                                      |
-| -------------- | ---------- | ----------- | ------------------------------------------------ |
-| `async`        | `boolean`  | `true`      | Toggles the `async` attribute on the script tag. |
-| `renderScript` | `function` | `undefined` | Custom script rendering function.                |
+| Prop               | Type                | Default     | Description                                                                                         |
+| ------------------ | ------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| `async`            | `boolean`           | `true`      | Toggles the `async` attribute on the script tag.                                                    |
+| `scriptAttributes` | `ScriptAttributes`  | `undefined` | Attributes applied to every generated `<script>` tag. **Must include `data-code: YOUR_ACCOUNT_ID`.** |
+| `renderScript`     | `function`          | `undefined` | Custom script rendering function.                                                                   |
 
 ### Loader Function
 
@@ -270,8 +278,15 @@ export async function loader({ params }) {
 ### Types
 
 ```typescript
+type ScriptAttributeValue = string | boolean | number | undefined;
+
+interface ScriptAttributes {
+  [key: string]: ScriptAttributeValue;
+}
+
 interface ServerTagProps {
   async?: boolean;
+  scriptAttributes?: ScriptAttributes;
   renderScript?: (scripts: string[]) => React.ReactNode;
 }
 

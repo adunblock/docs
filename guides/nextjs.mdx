@@ -11,6 +11,13 @@ A Next.js React Server Component for fetching and rendering external JavaScript 
 npm install @adunblock/server-tag-nextjs
 ```
 
+<Warning>
+  Every rendered `<script>` tag **must** include a `data-code` attribute set
+  to your Account ID (verification code). AdUnblock uses this value to verify
+  that the script is running on your registered domain. Find your Account ID
+  at **Dashboard → [Your Site] → Integration → Verification**.
+</Warning>
+
 ## Basic Usage
 
 Import and use the `ServerTag` component in your Next.js pages or layouts:
@@ -21,7 +28,10 @@ import ServerTag from "@adunblock/server-tag-nextjs";
 export default function MyPage() {
   return (
     <div>
-      <ServerTag remoteUrl="https://public.adunblocker.com/api/vendor_scripts" />
+      <ServerTag
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
+        scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }}
+      />
       <h1>My Page Content</h1>
     </div>
   );
@@ -82,18 +92,26 @@ export default function MyPage() {
 
 ### Props
 
-| Prop            | Type       | Default     | Description                       |
-| --------------- | ---------- | ----------- | --------------------------------- |
-| `remoteUrl`     | `string`   | Required    | The URL to fetch script URLs from |
-| `cacheInterval` | `number`   | `300`       | Cache duration in seconds         |
-| `renderScript`  | `function` | `undefined` | Custom script rendering function  |
+| Prop               | Type                | Default     | Description                                                                                        |
+| ------------------ | ------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| `remoteUrl`        | `string`            | Required    | The URL to fetch script URLs from                                                                  |
+| `cacheInterval`    | `number`            | `300`       | Cache duration in seconds                                                                          |
+| `scriptAttributes` | `ScriptAttributes`  | `undefined` | Attributes applied to every generated `<script>` tag. **Must include `data-code: YOUR_ACCOUNT_ID`.** |
+| `renderScript`     | `function`          | `undefined` | Custom script rendering function                                                                   |
 
 ### Types
 
 ```typescript
+type ScriptAttributeValue = string | boolean | number | undefined;
+
+interface ScriptAttributes {
+  [key: string]: ScriptAttributeValue;
+}
+
 interface ServerTagProps {
   remoteUrl: string;
   cacheInterval?: number;
+  scriptAttributes?: ScriptAttributes;
   renderScript?: (scripts: string[]) => React.ReactNode;
 }
 ```

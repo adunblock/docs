@@ -5,6 +5,13 @@ description: "Script loading for PHP applications with Laravel and Symfony suppo
 
 Server-side script loading packages for PHP applications, providing secure, cached script loading with framework-specific integrations for Laravel and Symfony.
 
+<Warning>
+  Every rendered `<script>` tag **must** include a `data-code` attribute set
+  to your Account ID (verification code). AdUnblock uses this value to verify
+  that the script is running on your registered domain. Find your Account ID
+  at **Dashboard → [Your Site] → Integration → Verification**.
+</Warning>
+
 ## Available Frameworks
 
 <CardGroup cols={2}>
@@ -46,14 +53,22 @@ Version 1.0+ is a stable release and doesn't require lowering `minimum-stability
 
 ### Basic Usage
 
-In your Blade template, you can now use the `server_tag` function:
+In your Blade template, you can now use the `server_tag` function. Pass your
+Account ID (verification code) via the fourth argument:
 
 ```php
 <!DOCTYPE html>
 <html>
 <head>
   <title>My Page</title>
-  {!! server_tag('https://public.adunblocker.com/api/vendor_scripts') !!}
+  {!!
+    server_tag(
+      'https://public.adunblocker.com/api/vendor_scripts',
+      300,
+      null,
+      ['data-code' => 'YOUR_ACCOUNT_ID']
+    )
+  !!}
 </head>
 <body>
   <h1>My Page</h1>
@@ -63,13 +78,20 @@ In your Blade template, you can now use the `server_tag` function:
 
 ### With Caching
 
-Add caching to reduce external requests by specifying cache duration in seconds:
+The second argument is the cache duration in seconds (default: `300`):
 
 ```php
-{!! server_tag('https://public.adunblocker.com/api/vendor_scripts', 300) !!}
+{!!
+  server_tag(
+    'https://public.adunblocker.com/api/vendor_scripts',
+    600,
+    null,
+    ['data-code' => 'YOUR_ACCOUNT_ID']
+  )
+!!}
 ```
 
-This caches the response for 5 minutes (300 seconds).
+This caches the response for 10 minutes (600 seconds).
 
 ### Custom Rendering
 
@@ -98,13 +120,19 @@ You can provide a custom closure to the `render_script` argument to render the s
 ### Function Signature
 
 ```php
-server_tag(string $url, int $cache_seconds = 0, ?callable $render_script = null): string
+server_tag(
+    string $url,
+    int $cache_seconds = 300,
+    ?callable $render_script = null,
+    ?array $script_attributes = null
+): string
 ```
 
 **Parameters:**
 - `$url` (string): The remote URL to fetch scripts from
-- `$cache_seconds` (int, optional): Cache duration in seconds. Default is 0 (no caching)
+- `$cache_seconds` (int, optional): Cache duration in seconds. Default is `300`
 - `$render_script` (callable, optional): Custom rendering function. Receives an array of script URLs and returns an HTML string
+- `$script_attributes` (array, optional): Associative array of attributes applied to every generated `<script>` tag. **Must include `'data-code' => YOUR_ACCOUNT_ID`.** Defaults to `['async' => true]`.
 
 ### Laravel Features
 

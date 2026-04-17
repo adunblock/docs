@@ -17,6 +17,13 @@ Install the package via pip:
 pip install adunblock-server-tag-django
 ```
 
+<Warning>
+  Every rendered `<script>` tag **must** include a `data-code` attribute set
+  to your Account ID (verification code). AdUnblock uses this value to verify
+  that the script is running on your registered domain. Find your Account ID
+  at **Dashboard → [Your Site] → Integration → Verification**.
+</Warning>
+
 Add the `server_tag` app to your `INSTALLED_APPS` in your Django `settings.py`:
 
 ```python
@@ -54,7 +61,19 @@ CACHES = {
 
 ### Basic Usage
 
-In your Django template, load the `server_tag_tags` and use the `server_tag` tag:
+In your view, pass the Account ID / verification code via the template
+context:
+
+```python
+# views.py
+def home(request):
+    return render(request, 'home.html', {
+        'server_tag_attrs': {'data-code': 'YOUR_ACCOUNT_ID'},
+    })
+```
+
+Then in your Django template, load the `server_tag_tags` and use the
+`server_tag` tag with the `script_attributes` argument:
 
 ```html
 {% load server_tag_tags %}
@@ -63,7 +82,7 @@ In your Django template, load the `server_tag_tags` and use the `server_tag` tag
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
+  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" script_attributes=server_tag_attrs %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -210,11 +229,12 @@ SERVER_TAG_RETRY_ATTEMPTS = 3
 
 The `server_tag` template tag accepts these parameters:
 
-| Parameter       | Type       | Default  | Description                            |
-| --------------- | ---------- | -------- | -------------------------------------- |
-| `remote_url`    | `string`   | Required | URL to fetch script configuration from |
-| `cache_timeout` | `number`   | `300`    | Cache duration in seconds              |
-| `render_script` | `function` | `None`   | Custom script rendering function       |
+| Parameter           | Type       | Default  | Description                                                                                           |
+| ------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `remote_url`        | `string`   | Required | URL to fetch script configuration from                                                                |
+| `cache_timeout`     | `number`   | `300`    | Cache duration in seconds                                                                             |
+| `script_attributes` | `dict`     | `None`   | Attributes applied to every generated `<script>` tag. **Must include `'data-code': YOUR_ACCOUNT_ID`.** |
+| `render_script`     | `function` | `None`   | Custom script rendering function                                                                      |
 
 ## Error Handling
 

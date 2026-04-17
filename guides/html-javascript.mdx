@@ -4,9 +4,16 @@ description: "Direct integration using vanilla HTML and JavaScript"
 ---
 
 <Info>
-  **Where to find your verification code**: Navigate to **Dashboard → [Your
-  Site] → Integration → Verification** in your AdUnblock dashboard.
+  **Where to find your verification code**: Your verification code is your
+  **Account ID**. Find it in your AdUnblock dashboard under **Dashboard →
+  [Your Site] → Integration → Verification**.
 </Info>
+
+<Warning>
+  The `data-code` attribute is **required**. Set it to your Account ID
+  (verification code) — AdUnblock uses this value to verify that the script is
+  running on your registered domain.
+</Warning>
 
 <Warning>
   Ad blockers regularly update their rules, and CDN endpoints may become blocked

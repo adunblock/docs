@@ -11,6 +11,13 @@ A powerful Express middleware for server-side script loading and injection. Load
 npm install @adunblock/server-tag-express
 ```
 
+<Warning>
+  Every rendered `<script>` tag **must** include a `data-code` attribute set
+  to your Account ID (verification code). AdUnblock uses this value to verify
+  that the script is running on your registered domain. Find your Account ID
+  at **Dashboard → [Your Site] → Integration → Verification**.
+</Warning>
+
 ## Quick Start
 
 ```typescript
@@ -23,6 +30,9 @@ const app = express();
 app.use(
   serverTagMiddleware({
     remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    scriptAttributes: {
+      "data-code": "YOUR_ACCOUNT_ID", // Required: your Account ID
+    },
   })
 );
 
@@ -59,6 +69,7 @@ const config: ServerTagMiddlewareOptions = {
   remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
   cacheInterval: 300,
   scriptAttributes: {
+    "data-code": "YOUR_ACCOUNT_ID", // Required: your Account ID (verification code)
     async: true,
     defer: false,
   },
