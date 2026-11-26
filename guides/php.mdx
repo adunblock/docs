@@ -42,7 +42,7 @@ A Laravel package to fetch and render scripts from a remote URL with caching sup
 Install the package via Composer:
 
 ```bash
-composer require adunblock/server-tag-laravel:^1.0
+composer require adunblock/server-tag-laravel:^1.2
 ```
 
 The package will be automatically registered via Laravel's package auto-discovery feature.
@@ -53,9 +53,8 @@ Version 1.0+ is a stable release and doesn't require lowering `minimum-stability
 
 ### Basic Usage
 
-In your Blade template, you can now use the `server_tag` function. Pass your
-Account ID (verification code) via the fourth argument, and your site's domain
-in the URL:
+In your Blade template, call the `server_tag` function with your Account ID
+(verification code) in the fourth argument:
 
 ```php
 <!DOCTYPE html>
@@ -64,7 +63,7 @@ in the URL:
   <title>My Page</title>
   {!!
     server_tag(
-      'https://public.adunblocker.com/api/vendor_scripts?domain=' . urlencode(request()->getHost()),
+      'https://public.adunblocker.com/api/vendor_scripts',
       300,
       null,
       ['data-code' => 'YOUR_ACCOUNT_ID']
@@ -77,10 +76,23 @@ in the URL:
 </html>
 ```
 
-The domain lets us move your site alone to a new script host when an ad
-blocker rule targets it (see [Fetch Config](/api-reference/fetch-config#query-parameters)).
-The cache is kept per URL, so each site of a multi-site install gets its own
-answer.
+It prints one tag, for the preferred script URL:
+
+```html
+<script data-cfasync="false" nowprocket src="SCRIPT_URL" async data-code="YOUR_ACCOUNT_ID"></script>
+```
+
+`data-cfasync="false"` and `nowprocket` come before `src`, which is what keeps
+Cloudflare Rocket Loader and WP Rocket's Delay JavaScript Execution off the tag.
+
+### Your site's domain
+
+The helper sends your site's domain to us as `?domain=`, taken from the current
+request's host. The domain lets us move your site alone to a new script host
+when an ad blocker rule targets it (see [Fetch Config](/api-reference/fetch-config#query-parameters)).
+The cache is kept per domain, so each site of a multi-site install gets its own
+answer. To send a different domain, pass it as the fifth argument, or leave a
+`?domain=` in the URL: it is kept as written.
 
 ### With Caching
 
@@ -89,7 +101,7 @@ The second argument is the cache duration in seconds (default: `300`):
 ```php
 {!!
   server_tag(
-    'https://public.adunblocker.com/api/vendor_scripts?domain=' . urlencode(request()->getHost()),
+    'https://public.adunblocker.com/api/vendor_scripts',
     600,
     null,
     ['data-code' => 'YOUR_ACCOUNT_ID']
@@ -101,33 +113,27 @@ This caches the response for 10 minutes (600 seconds).
 
 ### Custom Rendering
 
-Provide a closure as the `render_script` argument to print the tag yourself, for example behind Cloudflare Rocket Loader: Rocket Loader skips a script only when `data-cfasync="false"` comes **before** `src`, and the default tag prints `src` first. The closure receives the script URLs, preferred first. Keep `data-cfasync="false"` and `nowprocket` before `src`, keep `data-code`, and load it with `async`:
+The default tag is the one to use. If you need to print it yourself, pass a
+closure as the third argument. It receives the script URLs, preferred first:
+print only the first, keep `data-cfasync="false"` and `nowprocket` before
+`src`, keep `data-code`, and load it with `async`:
 
 ```php
-<!DOCTYPE html>
-<html>
-<head>
-  <title>My Page</title>
-  {!!
-    server_tag(
-      'https://public.adunblocker.com/api/vendor_scripts?domain=' . urlencode(request()->getHost()),
-      300,
-      function (array $scripts) {
-        if (empty($scripts)) {
-          return '';
-        }
-        return sprintf(
-          '<script data-cfasync="false" nowprocket src="%s" async data-code="YOUR_ACCOUNT_ID"></script>',
-          e($scripts[0])
-        );
+{!!
+  server_tag(
+    'https://public.adunblocker.com/api/vendor_scripts',
+    300,
+    function (array $scripts) {
+      if (empty($scripts)) {
+        return '';
       }
-    )
-  !!}
-</head>
-<body>
-  <h1>My Page</h1>
-</body>
-</html>
+      return sprintf(
+        '<script data-cfasync="false" nowprocket src="%s" async data-code="YOUR_ACCOUNT_ID"></script>',
+        e($scripts[0])
+      );
+    }
+  )
+!!}
 ```
 
 ### Function Signature
@@ -137,7 +143,8 @@ server_tag(
     string $url,
     int $cache_seconds = 300,
     ?callable $render_script = null,
-    ?array $script_attributes = null
+    ?array $script_attributes = null,
+    ?string $domain = null
 ): string
 ```
 
@@ -145,7 +152,8 @@ server_tag(
 - `$url` (string): The remote URL to fetch scripts from
 - `$cache_seconds` (int, optional): Cache duration in seconds. Default is `300`
 - `$render_script` (callable, optional): Custom rendering function. Receives an array of script URLs and returns an HTML string
-- `$script_attributes` (array, optional): Associative array of attributes applied to every generated `<script>` tag. **Must include `'data-code' => YOUR_ACCOUNT_ID`.** Defaults to `['async' => true]`.
+- `$script_attributes` (array, optional): Associative array of attributes added to the `<script>` tag after `src`. **Must include `'data-code' => YOUR_ACCOUNT_ID`.** `data-cfasync="false"`, `nowprocket` and `async` are printed by default; set one to `false` to drop it
+- `$domain` (string, optional): Your site's domain. Default is the current request's host
 
 ### Laravel Features
 
@@ -171,7 +179,7 @@ A Symfony bundle to fetch and render scripts from a remote URL with Twig integra
 Install the bundle via Composer:
 
 ```bash
-composer require adunblock/server-tag-symfony:^1.0
+composer require adunblock/server-tag-symfony:^1.1
 ```
 
 <Note>
@@ -191,50 +199,15 @@ return [
 
 ### Basic Usage
 
-The bundle's default tag has no attributes, so it can't carry your Account ID
-(`data-code`). Print the tag with a small renderer instead, and make it a Twig
-global so every template has it:
-
-```php
-<?php
-// src/Twig/AdunblockRenderer.php
-namespace App\Twig;
-
-final class AdunblockRenderer
-{
-    /** @param string[] $scripts The script URLs, preferred first. */
-    public function __invoke(array $scripts): string
-    {
-        if (!$scripts) {
-            return '';
-        }
-
-        // data-cfasync and nowprocket before src: Cloudflare Rocket Loader
-        // only skips a script whose data-cfasync comes first.
-        return sprintf(
-            '<script data-cfasync="false" nowprocket src="%s" async data-code="YOUR_ACCOUNT_ID"></script>',
-            htmlspecialchars($scripts[0], ENT_QUOTES, 'UTF-8')
-        );
-    }
-}
-```
-
-```yaml
-# config/packages/twig.yaml
-twig:
-    globals:
-        adunblock_render: '@App\Twig\AdunblockRenderer'
-```
-
-Then in your Twig template, pass your site's domain in the URL and the renderer
-as the third argument:
+In your Twig template, call `server_tag` with your Account ID (verification
+code) in `scriptAttributes`:
 
 ```twig
 <!DOCTYPE html>
 <html>
 <head>
   <title>My Page</title>
-  {{ server_tag('https://public.adunblocker.com/api/vendor_scripts?domain=' ~ app.request.host|url_encode, 300, adunblock_render) }}
+  {{ server_tag('https://public.adunblocker.com/api/vendor_scripts', scriptAttributes={'data-code': 'YOUR_ACCOUNT_ID'}) }}
 </head>
 <body>
   <h1>My Page</h1>
@@ -242,29 +215,53 @@ as the third argument:
 </html>
 ```
 
-The domain lets us move your site alone to a new script host when an ad
-blocker rule targets it (see [Fetch Config](/api-reference/fetch-config#query-parameters)).
-The cache is kept per URL, so each site of a multi-site install gets its own
-answer.
+It prints one tag, for the preferred script URL:
+
+```html
+<script data-cfasync="false" nowprocket src="SCRIPT_URL" async data-code="YOUR_ACCOUNT_ID"></script>
+```
+
+`data-cfasync="false"` and `nowprocket` come before `src`, which is what keeps
+Cloudflare Rocket Loader and WP Rocket's Delay JavaScript Execution off the tag.
+
+### Your site's domain
+
+The bundle sends your site's domain to us as `?domain=`, taken from the current
+request's host. The domain lets us move your site alone to a new script host
+when an ad blocker rule targets it (see [Fetch Config](/api-reference/fetch-config#query-parameters)).
+The cache is kept per domain, so each site of a multi-site install gets its own
+answer. To send a different domain, pass `domain='example.com'`, or leave a
+`?domain=` in the URL: it is kept as written.
 
 ### With Caching
 
 The second argument is the cache duration in seconds (default: `300`, 5 minutes):
 
 ```twig
-{{ server_tag('https://public.adunblocker.com/api/vendor_scripts?domain=' ~ app.request.host|url_encode, 600, adunblock_render) }}
+{{ server_tag('https://public.adunblocker.com/api/vendor_scripts', 600, null, {'data-code': 'YOUR_ACCOUNT_ID'}) }}
 ```
 
 ### Function Signature
 
 ```php
-server_tag(string $url, int $cache_seconds = 300, ?callable $render_script = null): string
+server_tag(
+    string $url,
+    int $cache_seconds = 300,
+    ?callable $render_script = null,
+    ?array $script_attributes = null,
+    ?string $domain = null
+): string
 ```
+
+In Twig the named arguments are `remoteUrl`, `cacheInterval`, `renderScript`,
+`scriptAttributes` and `domain`.
 
 **Parameters:**
 - `$url` (string): The remote URL to fetch scripts from
 - `$cache_seconds` (int, optional): Cache duration in seconds. Default is `300`
-- `$render_script` (callable, optional): Custom rendering function. Receives an array of script URLs and returns an HTML string. Without it, the tag carries no `data-code`, so always pass one
+- `$render_script` (callable, optional): Custom rendering function. Receives an array of script URLs and returns an HTML string
+- `$script_attributes` (array, optional): Attributes added to the `<script>` tag after `src`. **Must include `'data-code': YOUR_ACCOUNT_ID`.** `data-cfasync="false"`, `nowprocket` and `async` are printed by default; set one to `false` to drop it
+- `$domain` (string, optional): Your site's domain. Default is the current request's host
 
 ### Symfony Features
 
