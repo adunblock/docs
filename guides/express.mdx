@@ -18,6 +18,13 @@ npm install @adunblock/server-tag-express
   at the top of your AdUnblock dashboard.
 </Warning>
 
+<Tip>
+  **Send your site's domain.** Add `?domain=` and your domain to `remoteUrl`.
+  When an ad blocker rule targets your site, we move your site alone to a new
+  script host, and only a request that names your site receives it. See
+  [Fetch Config](/api-reference/fetch-config#query-parameters).
+</Tip>
+
 ## Quick Start
 
 ```typescript
@@ -29,7 +36,8 @@ const app = express();
 // Add ServerTag middleware with TypeScript support
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    // Your own domain in place of example.com
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
     scriptAttributes: {
       "data-code": "YOUR_ACCOUNT_ID", // Required: your Account ID
     },
@@ -54,6 +62,23 @@ app.get("/", (req, res) => {
 app.listen(3000);
 ```
 
+### Several sites on one app
+
+Build the middleware per request, so each site sends its own domain. The cache is kept per URL, so every site still gets its own cached answer:
+
+```typescript
+app.use((req, res, next) =>
+  serverTagMiddleware({
+    remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${encodeURIComponent(req.hostname)}`,
+    scriptAttributes: { "data-code": "YOUR_ACCOUNT_ID" },
+  })(req, res, next)
+);
+```
+
+### Behind Cloudflare Rocket Loader
+
+Rocket Loader skips a script only when `data-cfasync="false"` comes **before** `src`, and this package prints `src` first. If your site runs Rocket Loader, print the tag yourself from `res.locals.serverTagScripts`, as in [Direct Access](#4-direct-access).
+
 ## TypeScript Support
 
 This package is written in TypeScript and provides comprehensive type definitions:
@@ -66,7 +91,7 @@ import type {
 } from "@adunblock/server-tag-express";
 
 const config: ServerTagMiddlewareOptions = {
-  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
   cacheInterval: 300,
   scriptAttributes: {
     "data-code": "YOUR_ACCOUNT_ID", // Required: your Account ID (verification code)
@@ -125,10 +150,10 @@ Automatically inject scripts into HTML responses:
 ```typescript
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
     injectIntoHtml: true,
     injectPosition: "</head>", // Where to inject
-    scriptAttributes: { async: true }, // Script tag attributes
+    scriptAttributes: { async: true, "data-code": "YOUR_ACCOUNT_ID" }, // Script tag attributes
   })
 );
 ```
@@ -152,15 +177,19 @@ app.get("/page", (req, res) => {
 
 ### 4. Direct Access
 
-Access script data directly for custom implementations:
+Access script data directly for custom implementations. Keep `data-cfasync="false"` and `nowprocket` before `src`, and `data-code`:
 
 ```typescript
 app.get("/custom", (req, res) => {
   const scripts: string[] = res.locals.serverTagScripts || [];
 
-  // Custom script rendering with type safety
+  // The first URL is the preferred one
   const scriptTags = scripts
-    .map((url) => `<script src="${url}" async></script>`)
+    .slice(0, 1)
+    .map(
+      (url) =>
+        `<script data-cfasync="false" nowprocket src="${url.replace(/"/g, "&quot;")}" async data-code="YOUR_ACCOUNT_ID"></script>`
+    )
     .join("\n");
 
   res.send(`<html><head>${scriptTags}</head>...</html>`);
@@ -185,13 +214,13 @@ app.get("/custom", (req, res) => {
 import type { ServerTagMiddlewareOptions } from "@adunblock/server-tag-express";
 
 const config: ServerTagMiddlewareOptions = {
-  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+  remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
   cacheInterval: 600, // 10 minutes
   injectIntoHtml: true,
   injectPosition: "</head>",
   scriptAttributes: {
-    defer: true,
-    "data-source": "server-tag",
+    async: true,
+    "data-code": "YOUR_ACCOUNT_ID",
   },
   shouldInject: (req, res) => {
     // Don't inject scripts on API routes
@@ -214,7 +243,7 @@ Apply ServerTag to specific routes with different configurations:
 // Global middleware
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
   })
 );
 
@@ -222,9 +251,9 @@ app.use(
 app.get(
   "/special",
   serverTagMiddleware({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
     cacheInterval: 60, // 1 minute cache
-    scriptAttributes: { defer: true },
+    scriptAttributes: { "data-code": "YOUR_ACCOUNT_ID" },
   }),
   (req, res) => {
     res.render("special-page");
@@ -298,7 +327,7 @@ import {
 
 app.use(
   serverTagMiddleware({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts?domain=example.com",
     onError: (error, req, res) => {
       if (error instanceof NetworkError) {
         console.error("Network error:", error.message);

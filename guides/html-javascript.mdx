@@ -26,22 +26,53 @@ description: "Direct integration using vanilla HTML and JavaScript"
     Add the following script to your website's `<head>` section:
     
     ```html
-    <script src="LATEST_SCRIPT_URL" async data-code="YOUR_VERIFICATION_CODE"></script>
+    <script data-cfasync="false" nowprocket src="LATEST_SCRIPT_URL" async data-code="YOUR_VERIFICATION_CODE"></script>
     ```
     
     **Important:** 
     - Replace `YOUR_VERIFICATION_CODE` with your unique verification code from the dashboard.
-    - Replace `LATEST_SCRIPT_URL` with the current script URL. Fetch the latest script URL from: `https://public.adunblocker.com/api/vendor_scripts`
+    - Replace `LATEST_SCRIPT_URL` with the current script URL. Fetch the latest script URL from: `https://public.adunblocker.com/api/vendor_scripts?domain=example.com` (your own domain in place of `example.com`)
+    - Keep `data-cfasync="false"` and `nowprocket` **before** `src`. See [Page optimizers](#page-optimizers) below.
   </Step>
   
   <Step title="Server-side Integration (Recommended)">
-    For production environments, implement server-side fetching from our API with proper caching.
+    For production environments, resolve the script URL on your server when the page renders, so a host change reaches your site without a code change. Send your site's domain with the request (see [Fetch Config](/api-reference/fetch-config)):
+
+    ```php
+    <?php
+    // Cache the result for ~5 minutes with the cache you already run:
+    // this lookup sits on the page view path.
+    $url = 'https://public.adunblocker.com/api/vendor_scripts?domain='
+         . urlencode($_SERVER['HTTP_HOST'] ?? '');
+    $sources = json_decode(@file_get_contents($url), true);
+    $src = $sources[0] ?? null;
+
+    // No fallback URL: a script host we have moved away from recovers nothing,
+    // and nothing on the page would say so. Render no tag instead.
+    if ($src === null) {
+        error_log('AdUnblock: no script source available');
+    } else { ?>
+    <script data-cfasync="false" nowprocket
+            src="<?= htmlspecialchars($src, ENT_QUOTES) ?>"
+            async data-code="YOUR_VERIFICATION_CODE"></script>
+    <?php } ?>
+    ```
+
+    Print it in `<head>`, before your ad code.
   </Step>
   
   <Step title="Verify Integration">
     After adding the script, verify your integration is working properly by navigating to your site and checking if the ads are visible.
   </Step>
 </Steps>
+
+## Page optimizers
+
+`data-cfasync="false"` and `nowprocket` keep Cloudflare Rocket Loader and WP Rocket's Delay JavaScript Execution from deferring or rewriting the tag. AdUnblock has to run first and unmodified: once your page's ad requests are on their way, it's too late.
+
+- **Keep `data-cfasync="false"` before `src`.** Cloudflare only honors it there, and only in the HTML your server sends: setting it from JavaScript does nothing.
+- **`nowprocket` covers WP Rocket's Delay JavaScript Execution only.** WP Rocket has no attribute for *Load JavaScript deferred*: if you use that option, add the script URL from your tag to its **Excluded JavaScript Files**.
+- **Other optimizers** have their own exclusions. See [WordPress](/guides/wordpress#page-optimizers) for the plugin-specific ones.
 
 ## Verification Code
 
@@ -59,7 +90,7 @@ We provide multiple CDN endpoints to enhance reliability. If the primary script 
 You can also fetch the latest list of valid script sources programmatically from our configuration API:
 
 ```
-https://public.adunblocker.com/api/vendor_scripts
+https://public.adunblocker.com/api/vendor_scripts?domain=example.com
 ```
 
 ### Important Notice
@@ -68,7 +99,7 @@ As a site owner, you are responsible for ensuring your integration uses the late
 
 - Regularly check the System Status page for updated endpoint information
 - For production environments, implement server-side fetching from our API with proper caching
-- Use the API endpoint `https://public.adunblocker.com/api/vendor_scripts` to programmatically retrieve the latest valid scripts
+- Use the API endpoint `https://public.adunblocker.com/api/vendor_scripts?domain=example.com` to programmatically retrieve the latest valid scripts, with your own domain: it lets us move your site alone to a new host when a filter rule targets it
 - Never implement client-side fallbacks that fetch from our API directly
 
 ## Need help with implementation?
