@@ -1,93 +1,93 @@
 ---
 title: "Test With Chrome Extension"
-description: "Test your AdUnblock implementation using our Chrome extension"
+description: "See AdUnblock recover the ads on your site, under your own ad blocker, before you install the tag"
 ---
 
-Test your AdUnblock integration using our Chrome extension before deploying to production.
+The AdUnblock DevTool extension shows AdUnblock recovering the ads on your own site, in your own browser, before you add the tag to your site. Only your browser sees the test: your visitors aren't affected.
 
 <Info>
-  **Where to find your verification code**: Your verification code is your
-  **Account ID**, shown at the top of your AdUnblock dashboard.
+  There's nothing to copy or paste. The extension connects to your AdUnblock
+  account through your dashboard.
 </Info>
 
-<Note>
-  This testing step is optional and primarily valuable for larger publisher
-  sites with complex ad strategies. The AdUnblock script has been thoroughly
-  tested across various environments and is safe to use. Most sites can proceed
-  directly to implementation without preliminary testing.
-</Note>
-
 <Steps>
-  <Step title="Prerequisites">
-    Before testing, ensure you have the following setup:
-    
-    - Register your site in the AdUnblock dashboard
-    - Install an ad blocker extension (like AdBlock or AdBlock Plus) in Chrome
-    - Verify the ad blocker is enabled for your test site
-    - This setup is necessary to confirm AdUnblock works correctly by showing ads despite the ad blocker
+  <Step title="Get ready">
+    - An AdUnblock account. [Sign up free](https://ad-unblock.com/signup) if you don't have one.
+    - Chrome with an ad blocker installed and switched on for your site: AdBlock, Adblock Plus, uBlock Origin or AdGuard.
+
+    AdUnblock only steps in when it finds an ad blocker. Without one, your ads show as they always do, and there is nothing to recover.
   </Step>
 
-  <Step title="Install Chrome Extension">
-    Install the AdUnblock Devtool Chrome extension to test your integration:
-    
-    - Visit [**AdUnblock Devtool**](https://chromewebstore.google.com/detail/adunblock-devtool/gnlaoijjmmehcmccdkmbbcmmlpegcpmi) in the Chrome Web Store
-    - Click **Add to Chrome** to install the extension
+  <Step title="Install the extension">
+    - Open [**AdUnblock DevTool**](https://chromewebstore.google.com/detail/adunblock-devtool/gnlaoijjmmehcmccdkmbbcmmlpegcpmi) in the Chrome Web Store and click **Add to Chrome**.
+    - Pin it to your toolbar, so its icon is one click away.
   </Step>
 
-  <Step title="Test Your Website">
-    Use the extension to test the AdUnblock script on your website:
-    
-    - Navigate to your website in Chrome
-    - Click the **AdUnblock Devtool** extension icon in your browser toolbar
-    - Enter your **Verification Code**: `YOUR_ACCOUNT_ID`
-    - Enter the **Script URL**: `LATEST_SCRIPT_URL` (fetch the latest URL from: `https://public.adunblocker.com/api/vendor_scripts`)
-    - Click **Apply to Current Tab**
-    - The page will automatically reload with the AdUnblock script injected
-    
-    <Warning>
-      Your verification code is domain-specific, so you can only test on your own registered website. This extension is for testing purposes only before implementing a permanent integration.
-    </Warning>
+  <Step title="Connect your account">
+    - Open your website in Chrome and click the **AdUnblock DevTool** icon.
+    - Click **Connect your AdUnblock account**. Your dashboard opens in a new tab; sign in if you need to.
+    - If your site isn't in your account yet, add it there. You don't need to install the tag first.
+
+    The dashboard tab then closes on its own, you're back on your site, and the test starts. You only connect once: after that, click the icon on any of your sites and choose **Test ad recovery**.
   </Step>
 
-  <Step title="Verify Integration">
-    After the page reloads with the AdUnblock script, verify the following:
-    
-    ✅ **Website Functions Normally**: Your site should work without any issues
-    
-    ✅ **Ads Are Visible**: Ads should display even with an ad blocker installed
-    
-    If both conditions are met, your integration is successful! You can now proceed with implementing a permanent solution using one of our integration guides.
+  <Step title="Read the result">
+    The page reloads with AdUnblock on, and the extension checks three things:
+
+    ✅ **Recovery allowed**: your account can recover ads on this site
+
+    ✅ **Ad blocker found**: your ad blocker is on for this site
+
+    ✅ **Ads showing**: how many ads are on the page despite your ad blocker
+
+    The number of ads also shows on the extension's icon. When all three pass, install the tag from your dashboard's setup guide to recover ads for every visitor.
   </Step>
 </Steps>
 
-## Verification Code
+<Note>
+  Before your tag is installed, test page views use your account's impressions,
+  like any other recovered impression. The free plan includes 10,000 impressions
+  a month.
+</Note>
 
-Your unique verification code (shown as `YOUR_VERIFICATION_CODE` in the examples above) is required for AdUnblock to verify your integration. This code is specific to your registered domain.
+## If a check fails
 
-## Available Script Sources
+<AccordionGroup>
+  <Accordion title="Your site isn't in this account">
+    Add the site in your dashboard under **Manage Sites**, then click **Test again**. If you have more than one AdUnblock account, check that the extension uses the one that has this site.
+  </Accordion>
+  <Accordion title="Recovery is switched off for this site">
+    Switch it on in **Manage Sites**, then test again.
+  </Accordion>
+  <Accordion title="Your account has used all its impressions">
+    Upgrade your plan from your dashboard, then test again.
+  </Accordion>
+  <Accordion title="No ad blocker found">
+    Turn your ad blocker on for this site. A site you have allowlisted in your ad blocker counts as off.
+  </Accordion>
+  <Accordion title="No ads showing yet">
+    Some sites load their ads as you scroll. Scroll down the page, then click **Count ads again**. Still none? Write to us with your site's address.
+  </Accordion>
+</AccordionGroup>
 
-We provide multiple CDN endpoints to enhance reliability. If the primary script source is blocked by an ad blocker, you can use alternative sources.
+## Testing a client's site
 
-<Tip>
-  **View System Status**: Check our status page to see all available endpoints
-  and their current status.
-</Tip>
+Agencies can test a site in a client's account without connecting: click **Enter an account ID instead** and type the client's 8-digit Account ID, shown at the top of their AdUnblock dashboard.
 
-You can also fetch the latest list of valid script sources programmatically from our configuration API:
+## Good to know
 
-```
-https://public.adunblocker.com/api/vendor_scripts
-```
+- The extension adds AdUnblock after your page starts loading, while an installed tag loads with the page. On sites with complex ad setups, results can differ a little from what your installed tag will do.
+- The extension keeps only your Account ID and your sites' domains, in Chrome; your AdUnblock dashboard passes them to it. It works on a page only when you click its icon there. See the [privacy policy](https://ad-unblock.com/privacy/chrome-ext).
 
 ## Need Help?
 
-If you're experiencing any issues with the integration, please contact our support team at [support@ad-unblock.com](mailto:support@ad-unblock.com).
+If anything doesn't work as described, contact our support team at [support@ad-unblock.com](mailto:support@ad-unblock.com).
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="JavaScript Integration" icon="js" href="/guides/html-javascript">
-    Implement AdUnblock with vanilla JavaScript
+    Install the AdUnblock tag on any website
   </Card>
   <Card title="WordPress Integration" icon="wordpress" href="/guides/wordpress">
     Use our WordPress plugin for easy setup
