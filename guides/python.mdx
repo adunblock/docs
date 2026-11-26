@@ -61,15 +61,40 @@ CACHES = {
 
 ### Basic Usage
 
-In your view, pass the Account ID / verification code via the template
-context:
+Give every template the sources URL and your Account ID with a context
+processor. The URL carries the domain of the page being rendered, so we can
+move your site alone to a new script host when an ad blocker rule targets it
+(see [Fetch Config](/api-reference/fetch-config#query-parameters)). The cache is
+kept per URL, so each site of a multi-site install gets its own answer.
 
 ```python
-# views.py
-def home(request):
-    return render(request, 'home.html', {
+# my_app/context_processors.py
+from urllib.parse import quote
+
+
+def adunblock(request):
+    return {
+        'adunblock_sources_url': (
+            'https://public.adunblocker.com/api/vendor_scripts?domain='
+            + quote(request.get_host())
+        ),
         'server_tag_attrs': {'data-code': 'YOUR_ACCOUNT_ID'},
-    })
+    }
+```
+
+```python
+# settings.py
+TEMPLATES = [
+    {
+        # ...
+        'OPTIONS': {
+            'context_processors': [
+                # ... the ones you have
+                'my_app.context_processors.adunblock',
+            ],
+        },
+    },
+]
 ```
 
 Then in your Django template, load the `server_tag_tags` and use the
@@ -82,7 +107,7 @@ Then in your Django template, load the `server_tag_tags` and use the
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" script_attributes=server_tag_attrs %}
+  {% server_tag adunblock_sources_url script_attributes=server_tag_attrs %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -92,35 +117,47 @@ Then in your Django template, load the `server_tag_tags` and use the
 
 ### Custom Rendering
 
-You can provide a custom Python function to the `render_script` parameter to customize how script tags are rendered:
+Pass a Python function as `render_script` to print the tag yourself, for
+example behind Cloudflare Rocket Loader: Rocket Loader skips a script only when
+`data-cfasync="false"` comes **before** `src`, and the default tag prints `src`
+first. The function receives `{'js': [...]}`, the script URLs with the
+preferred one first. Keep `data-cfasync="false"` and `nowprocket` before `src`,
+keep `data-code`, and load it with `async`.
 
-#### Create Custom Template Tag
+#### Add the Renderer to the Context Processor
 
 ```python
-# my_app/templatetags/custom_tags.py
-from django import template
-from django.utils.safestring import mark_safe
+# my_app/context_processors.py
+from django.utils.html import escape
 
-register = template.Library()
 
-@register.simple_tag
-def custom_script_renderer(scripts):
-    from django.utils.html import escape
-    script_tags = [f'<script src="{escape(src)}" defer></script>' for src in scripts]
-    return mark_safe('\n'.join(script_tags))
+def render_adunblock(js_files):
+    sources = js_files.get('js') or []
+    if not sources:
+        return ''
+    return (
+        f'<script data-cfasync="false" nowprocket src="{escape(sources[0])}" '
+        f'async data-code="YOUR_ACCOUNT_ID"></script>'
+    )
+
+
+def adunblock(request):
+    return {
+        # ... adunblock_sources_url and server_tag_attrs, as above
+        'adunblock_render': render_adunblock,
+    }
 ```
 
-#### Use Custom Renderer in Template
+#### Use It in the Template
 
 ```html
 {% load server_tag_tags %}
-{% load custom_tags %}
 
 <!DOCTYPE html>
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" render_script=custom_script_renderer %}
+  {% server_tag adunblock_sources_url render_script=adunblock_render %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -159,7 +196,7 @@ The remote URL should return a JSON response in this format:
 <html>
 <head>
   <title>My Page</title>
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" cache_timeout=600 %}
+  {% server_tag adunblock_sources_url cache_interval=600 script_attributes=server_tag_attrs %}
 </head>
 <body>
   <h1>My Page</h1>
@@ -177,9 +214,9 @@ The remote URL should return a JSON response in this format:
 <head>
   <title>My Page</title>
   {% if user.is_authenticated %}
-    {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
+    {% server_tag adunblock_sources_url script_attributes=server_tag_attrs %}
   {% else %}
-    {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
+    {% server_tag adunblock_sources_url script_attributes=server_tag_attrs %}
   {% endif %}
 </head>
 <body>
@@ -232,7 +269,7 @@ The `server_tag` template tag accepts these parameters:
 | Parameter           | Type       | Default  | Description                                                                                           |
 | ------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------- |
 | `remote_url`        | `string`   | Required | URL to fetch script configuration from                                                                |
-| `cache_timeout`     | `number`   | `300`    | Cache duration in seconds                                                                             |
+| `cache_interval`    | `number`   | `300`    | Cache duration in seconds                                                                             |
 | `script_attributes` | `dict`     | `None`   | Attributes applied to every generated `<script>` tag. **Must include `'data-code': YOUR_ACCOUNT_ID`.** |
 | `render_script`     | `function` | `None`   | Custom script rendering function                                                                      |
 
@@ -294,7 +331,7 @@ LOGGING = {
 <html>
 <head>
   <title>{% block title %}My Site{% endblock %}</title>
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
+  {% server_tag adunblock_sources_url script_attributes=server_tag_attrs %}
   {% block extra_scripts %}{% endblock %}
 </head>
 <body>
@@ -311,7 +348,7 @@ LOGGING = {
 {% load server_tag_tags %}
 
 {% block extra_scripts %}
-  {% server_tag "https://public.adunblocker.com/api/vendor_scripts" %}
+  {% server_tag adunblock_sources_url script_attributes=server_tag_attrs %}
 {% endblock %}
 
 {% block content %}

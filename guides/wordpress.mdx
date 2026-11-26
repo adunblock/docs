@@ -62,3 +62,22 @@ After installing the plugin, configure it through **Settings > AdUnblock**:
 - **User Roles**: Which user roles to show messages to
 - **Mobile Settings**: Mobile-specific configuration
 - **Cache Compatibility**: Settings for caching plugins
+
+## After Installing: Clear Your Caches
+
+The plugin adds the tag to pages WordPress builds from now on. HTML already cached by WP Rocket, LiteSpeed, W3 Total Cache, your host or your CDN still goes out without it, and verification fails on those pages. Clear every layer you run, page cache and CDN both.
+
+## Page Optimizers
+
+The plugin prints the tag with `data-cfasync="false"` and `nowprocket`, ahead of `src`. They keep Cloudflare Rocket Loader and WP Rocket's *Delay JavaScript Execution* from deferring or rewriting it: AdUnblock has to run before your ad code, and either one would load it after your ad requests are already out. Keep the plugin updated and this part looks after itself.
+
+No attribute reaches the rest. If you run any of these, add the script URL to its JavaScript exclusion list, covering minify/combine, defer and delay:
+
+| Optimizer | Where to exclude the script |
+| --- | --- |
+| WP Rocket *Load JavaScript deferred* | **File Optimization**, its *Excluded JavaScript Files* list |
+| LiteSpeed Cache | **Page Optimization**, its JS exclude lists (optimize, defer and delay) |
+| Autoptimize | **JS, CSS & HTML**, *Exclude scripts from Autoptimize* |
+| W3 Total Cache, Perfmatters, SG Optimizer | Their JavaScript exclusion settings |
+
+Take the URL from the AdUnblock `<script>` tag in your page source (it starts with `data-cfasync="false" nowprocket src=`).

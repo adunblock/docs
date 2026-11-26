@@ -5,7 +5,7 @@ description: "Fetch AdUnblock latest configuration"
 
 # Configuration API Reference
 
-The AdUnblock Configuration API provides access to the latest JavaScript configuration files needed for ad blocker detection on your website.
+The AdUnblock Configuration API returns the current URL of the AdUnblock script for your site. Script hosts change when ad blockers add rules against them, so resolve the URL on your server when your page renders instead of hardcoding it.
 
 ## Base URL
 
@@ -17,34 +17,51 @@ https://public.adunblocker.com
 
 This API endpoint is publicly accessible and does not require authentication.
 
-## Caching
-
-The API responses are cached for optimal performance and support standard HTTP caching headers for efficient client-side caching.
-
 ## Server Tag Configuration
 
 ### Get JavaScript Configuration
 
-Retrieve the latest JavaScript files needed for ad blocker detection.
+Retrieve the current script URL for your site.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET https://public.adunblocker.com/api/vendor_scripts
+curl "https://public.adunblocker.com/api/vendor_scripts?domain=example.com"
 ```
 
 ```javascript JavaScript
-const response = await fetch("https://public.adunblocker.com/api/vendor_scripts");
+const response = await fetch(
+  "https://public.adunblocker.com/api/vendor_scripts?domain=example.com"
+);
 const scripts = await response.json();
 ```
 
 ```python Python
 import requests
 
-response = requests.get('https://public.adunblocker.com/api/vendor_scripts')
+response = requests.get(
+    'https://public.adunblocker.com/api/vendor_scripts',
+    params={'domain': 'example.com'},
+    timeout=3,
+)
 scripts = response.json()
 ```
 
 </CodeGroup>
+
+#### Query Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| `domain`  | No, but recommended | Your site's domain, as your visitors see it (`example.com`). |
+
+**Always send `domain`.** Many ad blocker rules block a script host only on the sites they name. When a rule targets your site, we publish a new host for your site alone, and only a request that names your site receives it. Without `domain`, your site gets the shared default URL, which for such a rule is exactly the host blocked for you.
+
+- **Send the host of the page being rendered**, not your origin server, CDN hostname or ad server: `$_SERVER['HTTP_HOST']` in PHP, `req.hostname` in Express, `request.get_host()` in Django.
+- **Just the host.** A full URL, uppercase, a port or `www.` are normalized for you, and `www.example.com` resolves to `example.com`.
+- **Multi-site installs:** read the host off each request, and every site gets its own answer.
+- **A missing or unknown domain is never an error.** You get the default list, as integrations that predate the parameter do.
+
+If we gave you a sources URL with a vendor segment (`/api/vendor_scripts/<vendor>`), keep it and add `domain` to it.
 
 #### Response
 
@@ -54,61 +71,56 @@ scripts = response.json()
 
 #### Response Format
 
-The response is a JSON array containing JavaScript file URLs for ad blocker detection as strings.
+A JSON array of script URLs, most preferred first. Use the first one. The shape is the same with or without `domain`: only the URLs inside can differ.
 
 #### Response Headers
 
-| Header          | Description                                       |
-| --------------- | ------------------------------------------------- |
-| `Content-Type`  | `application/json`                                |
-| `ETag`          | Entity tag for caching validation                 |
-| `Last-Modified` | Timestamp when the configuration was last updated |
+| Header          | Description                                                   |
+| --------------- | ------------------------------------------------------------- |
+| `Content-Type`  | `application/json`                                            |
+| `Cache-Control` | `public, max-age=0, must-revalidate`                          |
+| `ETag`          | Changes only when the list for your site changes              |
 
-#### Usage Example
+The endpoint honors `If-None-Match` and answers `304 Not Modified` when the list hasn't changed, so revalidating is cheap.
 
-Once you fetch the configuration, you can dynamically load the JavaScript files:
+#### Using the Response
 
-```javascript
-// Fetch configuration
-const scripts = await fetch(
-  "https://public.adunblocker.com/api/vendor_scripts"
-).then((response) => response.json());
+Print the tag from your server, in `<head>` and before your ad code, with the first URL as `src`. Keep the attributes from your dashboard's tag, with `data-cfasync="false"` and `nowprocket` before `src` (see [Page optimizers](/guides/html-javascript#page-optimizers)):
 
-// Load the JavaScript files
-scripts.forEach((scriptUrl) => {
-  const script = document.createElement("script");
-  script.src = scriptUrl;
-  script.async = true;
-  document.head.appendChild(script);
-});
+```html
+<script data-cfasync="false" nowprocket src="FIRST_URL_FROM_THE_RESPONSE" async data-code="YOUR_ACCOUNT_ID"></script>
 ```
 
-#### Caching Recommendations
+Four rules, whatever your stack:
 
-- The API supports standard HTTP caching headers
-- Implement conditional requests using `If-None-Match` header with ETag
-- Cache responses locally for better performance
-- Check for updates periodically (e.g., every hour)
+1. **Cache the URL for about 5 minutes.** The lookup sits on your page view path.
+2. **Cache a failure too**, for about 30 seconds, and use a short timeout (about 3 seconds), so an outage can't slow every page view.
+3. **Never hardcode a fallback URL.** A host we have moved away from recovers nothing, and nothing on your page would say so. Render no tag and log it instead.
+4. **Don't fetch it from the browser.** Ad blockers act in the browser, and a client-side lookup runs too late to help your ads.
 
 ```javascript
-// Example with conditional request
-const etag = localStorage.getItem("config-etag");
-const headers = etag ? { "If-None-Match": etag } : {};
+// Node.js: revalidate with the ETag you kept (cache it with what you already run)
+let cached = { etag: null, scripts: [], at: 0 };
 
-const response = await fetch("https://public.adunblocker.com/api/vendor_scripts", {
-  headers,
-});
-
-if (response.status === 304) {
-  // Use cached configuration
-  console.log("Configuration unchanged");
-} else {
-  // Update cache
-  const scripts = await response.json();
-  localStorage.setItem("config-etag", response.headers.get("ETag"));
-  localStorage.setItem("config-data", JSON.stringify(scripts));
+async function currentScript(host) {
+  if (Date.now() - cached.at < 5 * 60 * 1000) return cached.scripts[0];
+  const response = await fetch(
+    `https://public.adunblocker.com/api/vendor_scripts?domain=${encodeURIComponent(host)}`,
+    {
+      headers: cached.etag ? { "If-None-Match": cached.etag } : {},
+      signal: AbortSignal.timeout(3000),
+    }
+  );
+  if (response.status !== 304) {
+    cached.scripts = await response.json();
+    cached.etag = response.headers.get("ETag");
+  }
+  cached.at = Date.now();
+  return cached.scripts[0];
 }
 ```
+
+For a multi-site install, keep one cache entry per host.
 
 ## Valid Script Sources (Deprecated)
 

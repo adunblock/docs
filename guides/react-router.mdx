@@ -31,6 +31,22 @@ npm install @adunblock/server-tag-react-router
   at the top of your AdUnblock dashboard.
 </Warning>
 
+<Tip>
+  **Send your site's domain.** Add `?domain=` and your domain to `remoteUrl`.
+  When an ad blocker rule targets your site, we move your site alone to a new
+  script host, and only a request that names your site receives it. Loaders get
+  the request, so read the host off it, as below. The cache is kept per URL, so
+  each site gets its own cached answer. See
+  [Fetch Config](/api-reference/fetch-config#query-parameters).
+</Tip>
+
+<Note>
+  **Behind Cloudflare Rocket Loader?** Rocket Loader skips a script only when
+  `data-cfasync="false"` comes **before** `src`, and the default tag prints
+  `src` first. Print the tag yourself with `renderScript`, as in
+  [Custom Script Rendering](#custom-script-rendering).
+</Note>
+
 ## Usage
 
 ### Data Mode with Custom Server
@@ -59,9 +75,10 @@ export const routes = [
   {
     path: "/",
     element: <HomePage />,
-    loader: () =>
+    loader: ({ request }) =>
       serverTagLoader({
-        remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+        // The host of the page being rendered
+        remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${new URL(request.url).hostname}`,
         cacheInterval: 300, // Optional: cache for 5 minutes
       }),
   },
@@ -140,10 +157,10 @@ Place `<ServerTag />` in the `<head>` of your root layout. This single component
 import ServerTag, { serverTagLoader } from "@adunblock/server-tag-react-router";
 import { Outlet } from "react-router-dom";
 
-export async function loader() {
+export async function loader({ request }: { request: Request }) {
   // Load global scripts for all pages
   return await serverTagLoader({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${new URL(request.url).hostname}`,
   });
 }
 
@@ -171,11 +188,11 @@ In a specific route, add another loader. When combining with other page data, en
 // routes/dashboard.tsx
 import { serverTagLoader } from "@adunblock/server-tag-react-router";
 
-export async function loader() {
+export async function loader({ request }: { request: Request }) {
   const [scriptData, dashboardData] = await Promise.all([
     // Load scripts only for this page
     serverTagLoader({
-      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts`,
+      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${new URL(request.url).hostname}`,
     }),
     // Load other page data
     fetch("https://api.example.com/dashboard").then((r) => r.json()),
@@ -201,7 +218,7 @@ The remote URL should return a JSON response in this format:
 
 ## Custom Script Rendering
 
-Override the default script rendering with a custom callback:
+Override the default script rendering with a custom callback. It receives `{ js: string[] }`, the script URLs with the preferred one first. Keep `data-cfasync="false"` and `nowprocket` before `src`, keep `data-code`, and load it right away (`async`, not `defer`): AdUnblock has to run before your ad code.
 
 ```tsx
 import ServerTag from "@adunblock/server-tag-react-router";
@@ -210,15 +227,16 @@ function MyPage() {
   return (
     <div>
       <ServerTag
-        async={false}
-        renderScript={(scripts) => (
+        renderScript={({ js }) => (
           <>
-            {scripts.map((src) => (
+            {js.slice(0, 1).map((src) => (
               <script
                 key={src}
+                data-cfasync="false"
+                nowprocket=""
                 src={src}
-                defer
-                data-custom-attribute="server-loaded"
+                async
+                data-code="YOUR_ACCOUNT_ID"
               />
             ))}
           </>
@@ -257,16 +275,16 @@ Async function for loading scripts in React Router loaders. Works with both data
 
 ```tsx
 // Simple loader
-export const loader = () =>
+export const loader = ({ request }) =>
   serverTagLoader({
-    remoteUrl: "https://public.adunblocker.com/api/vendor_scripts",
+    remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${new URL(request.url).hostname}`,
   });
 
 // Combined with other data
-export async function loader({ params }) {
+export async function loader({ params, request }) {
   const [scripts, data] = await Promise.all([
     serverTagLoader({
-      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts`,
+      remoteUrl: `https://public.adunblocker.com/api/vendor_scripts?domain=${new URL(request.url).hostname}`,
       cacheInterval: 600,
     }),
     fetch("/api/data").then((r) => r.json()),
@@ -287,7 +305,7 @@ interface ScriptAttributes {
 interface ServerTagProps {
   async?: boolean;
   scriptAttributes?: ScriptAttributes;
-  renderScript?: (scripts: string[]) => React.ReactNode;
+  renderScript?: (jsFiles: { js: string[] }) => React.ReactNode;
 }
 
 interface ServerTagLoaderArgs {
