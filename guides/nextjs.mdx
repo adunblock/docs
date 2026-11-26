@@ -8,7 +8,7 @@ A Next.js React Server Component for fetching and rendering external JavaScript 
 ## Installation
 
 ```bash
-npm install @adunblock/server-tag-nextjs
+npm install @adunblock/server-tag-nextjs@^1.2
 ```
 
 <Warning>
@@ -17,13 +17,6 @@ npm install @adunblock/server-tag-nextjs
   that the script is running on your registered domain. Find your Account ID
   at the top of your AdUnblock dashboard.
 </Warning>
-
-<Tip>
-  **Send your site's domain.** Add `?domain=` and your domain to `remoteUrl`.
-  When an ad blocker rule targets your site, we move your site alone to a new
-  script host, and only a request that names your site receives it. See
-  [Fetch Config](/api-reference/fetch-config#query-parameters).
-</Tip>
 
 ## Basic Usage
 
@@ -36,8 +29,7 @@ export default function MyPage() {
   return (
     <div>
       <ServerTag
-        // Your own domain in place of example.com
-        remoteUrl="https://public.adunblocker.com/api/vendor_scripts?domain=example.com"
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
         scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }}
       />
       <h1>My Page Content</h1>
@@ -46,33 +38,37 @@ export default function MyPage() {
 }
 ```
 
-### Several sites on one app
+It prints one tag, for the preferred script URL, which React places in `<head>`:
 
-Read the host off the request, so each site sends its own domain. The cache is kept per URL, so every site still gets its own cached answer:
-
-```tsx
-import { headers } from "next/headers";
-import ServerTag from "@adunblock/server-tag-nextjs";
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const host = (await headers()).get("host") ?? "";
-  return (
-    <html>
-      <body>
-        <ServerTag
-          remoteUrl={`https://public.adunblocker.com/api/vendor_scripts?domain=${encodeURIComponent(host)}`}
-          scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }}
-        />
-        {children}
-      </body>
-    </html>
-  );
-}
+```html
+<script data-cfasync="false" nowprocket="" src="SCRIPT_URL" async="" data-code="YOUR_ACCOUNT_ID"></script>
 ```
 
-### Behind Cloudflare Rocket Loader
+`data-cfasync="false"` and `nowprocket` come before `src`, which is what keeps
+Cloudflare Rocket Loader and WP Rocket's Delay JavaScript Execution off the tag.
 
-Rocket Loader skips a script only when `data-cfasync="false"` comes **before** `src`, and the default tag prints `src` first. If your site runs Rocket Loader, print the tag yourself with `renderScript`, as in [Custom Script Rendering](#custom-script-rendering).
+### Your site's domain
+
+The component sends your site's domain to us as `?domain=`, read from the
+request's `x-forwarded-host` or `host` header. When an ad blocker rule targets
+your site, we move your site alone to a new script host, and only a request
+that names your site receives it (see [Fetch Config](/api-reference/fetch-config#query-parameters)).
+The cache is kept per domain, so each site of a multi-site app gets its own
+answer.
+
+Reading the request makes the route render on every request. To keep a page
+static, pass the domain yourself:
+
+```tsx
+<ServerTag
+  remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
+  domain="example.com"
+  scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }}
+/>
+```
+
+A static page keeps the script URL it was built with until it is rebuilt or
+revalidated, so give it a `revalidate` (for example `export const revalidate = 300`).
 
 ## Advanced Usage
 
@@ -85,7 +81,7 @@ export default function MyPage() {
   return (
     <div>
       <ServerTag
-        remoteUrl="https://public.adunblocker.com/api/vendor_scripts?domain=example.com"
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
         cacheInterval={600} // Cache for 10 minutes (default: 300 seconds)
         scriptAttributes={{ "data-code": "YOUR_ACCOUNT_ID" }}
       />
@@ -97,7 +93,7 @@ export default function MyPage() {
 
 ### Custom Script Rendering
 
-Override the default script rendering with a custom callback. It receives `{ js: string[] }`, the script URLs with the preferred one first. Keep `data-cfasync="false"` and `nowprocket` before `src`, keep `data-code`, and load it right away (`async`): a deferred or lazy strategy loads AdUnblock after your ads have already been blocked.
+The default tag is the one to use. If you need to print it yourself, pass a callback. It receives `{ js: string[] }`, the script URLs with the preferred one first. Print only the first, keep `data-cfasync="false"` and `nowprocket` before `src`, keep `data-code`, and load it right away (`async`): a deferred or lazy strategy loads AdUnblock after your ads have already been blocked.
 
 ```tsx
 import ServerTag from "@adunblock/server-tag-nextjs";
@@ -106,7 +102,7 @@ export default function MyPage() {
   return (
     <div>
       <ServerTag
-        remoteUrl="https://public.adunblocker.com/api/vendor_scripts?domain=example.com"
+        remoteUrl="https://public.adunblocker.com/api/vendor_scripts"
         renderScript={({ js }) =>
           js.slice(0, 1).map((src) => (
             <script
@@ -134,7 +130,8 @@ export default function MyPage() {
 | ------------------ | ------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
 | `remoteUrl`        | `string`            | Required    | The URL to fetch script URLs from                                                                  |
 | `cacheInterval`    | `number`            | `300`       | Cache duration in seconds                                                                          |
-| `scriptAttributes` | `ScriptAttributes`  | `undefined` | Attributes applied to every generated `<script>` tag. **Must include `data-code: YOUR_ACCOUNT_ID`.** |
+| `domain`           | `string`            | request host | Your site's domain, sent as `?domain=`. Pass it to keep a page static                              |
+| `scriptAttributes` | `ScriptAttributes`  | `undefined` | Attributes added to the tag after `src`. **Must include `data-code: YOUR_ACCOUNT_ID`.** `data-cfasync`, `nowprocket` and `async` are on by default; set one to `false` to drop it |
 | `renderScript`     | `function`          | `undefined` | Custom script rendering function                                                                   |
 
 ### Types
@@ -149,6 +146,7 @@ interface ScriptAttributes {
 interface ServerTagProps {
   remoteUrl: string;
   cacheInterval?: number;
+  domain?: string;
   scriptAttributes?: ScriptAttributes;
   renderScript?: (jsFiles: { js: string[] }) => React.ReactNode;
 }
